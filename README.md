@@ -39,4 +39,7 @@
    ```bash
    sudo pacman -S fuse2
    ```
-   e intentá nuevamente los comandos anteriores y te debería salir la licencia.
+   e intentá nuevamente los comandos anteriores.
+ 7. Acepta la licencia.
+ 8. Se va a ejecutar packet tracer, necesitas iniciar sesión por primera vez.
+ 9. Listo, ya te debería salir en tu launcher de aplicaciones.
