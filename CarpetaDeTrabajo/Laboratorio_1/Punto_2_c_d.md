@@ -2,7 +2,7 @@
 
 Si quisiéramos transmitir la 4ta letra del nombre de nuestro grupo (**MACac OS**), la cual es **“a”**, la señal se vería representada de esta manera:
 
-![Señal digital para la letra "a"](CarpetaDeTrabajo/Laboratorio_1/señal_codificada.png)
+![](CarpetaDeTrabajo/Laboratorio_1/senal-codificada.png)
 
 * En codificación ASCII, el caracter **“a”** equivale a **97** en decimal.
 * Convirtiendo 97 en un byte (binario) obtenemos: `0110 0001`.
