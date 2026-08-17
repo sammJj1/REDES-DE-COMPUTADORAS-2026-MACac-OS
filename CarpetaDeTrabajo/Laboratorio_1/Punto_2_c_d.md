@@ -1,11 +1,11 @@
-### c) Representación de la señal
+### c) Representación de la señal digital
 
 Si quisiéramos transmitir la 4ta letra del nombre de nuestro grupo (**MACac OS**), la cual es **“a”**, la señal se vería representada de esta manera:
 
-![](CarpetaDeTrabajo/Laboratorio_1/senal-codificada.png)
+![](/CarpetaDeTrabajo/Laboratorio_1/senal-codificada.png)
 
 * En codificación ASCII, el caracter **“a”** equivale a **97** en decimal.
-* Convirtiendo 97 en un byte (binario) obtenemos: `0110 0001`.
+* Convirtiendo 97 a binario, obtenemos el byte: `0110 0001`.
 
 ---
 
