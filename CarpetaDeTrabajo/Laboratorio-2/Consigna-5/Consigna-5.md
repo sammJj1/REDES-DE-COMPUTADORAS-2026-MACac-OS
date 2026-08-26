@@ -1,0 +1,1 @@
+Para la consigna 5 se creo un script de Python para leer el archivo binario, primero se
