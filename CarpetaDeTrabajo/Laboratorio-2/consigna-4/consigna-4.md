@@ -16,7 +16,7 @@ Diferencias entre sus tres partes principales:
 
 #### Carga útil (Payload): Es el cuerpo de datos útil que se desea transmitir; típicamente transporta el paquete de datos de la capa inmediatamente superior que se encapsuló en la trama.
 
-#### Tráiler o Cola (Trailer): Es la sección final de la trama que se sitúa a continuación de la carga útil.
+#### Tráiler o Cola (Trailer): Es la parte final de la trama, ubicada después de la carga útil. Contiene el FCS (Frame Check Sequence), el campo donde se guarda el código de verificación de errores. Este código se genera con la técnica de CRC (Cyclic Redundancy Check), calculada por el emisor sobre el contenido de la trama (sin contar los delimitadores). El receptor repite el mismo cálculo al recibirla, y si no coincide con lo que vino en el FCS, asume que hubo un error y la descarta. Normalmente se usa un CRC de 16 bits, aunque para tramas más largas se puede usar uno de 32 bits para mayor confiabilidad. 
 
 
 ### c) 
@@ -42,4 +42,4 @@ Caracteres o secuencias delimitadoras (Flags/Banderas): Se define un patrón de 
 Para garantizar que esta secuencia no aparezca accidentalmente dentro de los datos del usuario y cause una terminación prematura, se implementa la inserción de bits (bit stuffing): el emisor introduce automáticamente un cero extra cada vez que detecta cinco unos consecutivos en los datos, y el receptor elimina este cero al procesar la trama.
 
 
-Tráiler o Cola (Trailer): Es la parte final de la trama, ubicada después de la carga útil. Contiene el FCS (Frame Check Sequence), el campo donde se guarda el código de verificación de errores. Este código se genera con la técnica de CRC (Cyclic Redundancy Check), calculada por el emisor sobre el contenido de la trama (sin contar los delimitadores). El receptor repite el mismo cálculo al recibirla, y si no coincide con lo que vino en el FCS, asume que hubo un error y la descarta. Normalmente se usa un CRC de 16 bits, aunque para tramas más largas se puede usar uno de 32 bits para mayor confiabilidad. 
+
