@@ -1,0 +1,6 @@
+3) Los sistemas de transmisión gestionan el ruido principalmente de dos formas. 
+    1. Mediante **FEC** (foward Error Correction), que funciona basicamente agregando redundancia a la trama, si envio dos veces seguidas el mismo numero es mas seguro que enviarlo una sola vez, este principio sigue el FEC, el emisor añade información redundante mediante algun algoritmo y el receptor, mediante el mismo algoritmo desifra si hubo ruido eléctrio. 
+    2. Mediante **ARQ**, que funciona haciendo que le receptor de un feedback sobre le paquete que recibio, si esta correcto comunica al emisor la con un mensaje llamado ACK(acknowledgment), en cambio si es incorrecto el receptor pide que lo vuelvan a enviar.
+
+    Esto sin mencionar la encapsulación, que seria mas bien una forma de proteger la trama del posible ruido, con ***headers*** y a veces **trailers**, con el tamaño de la trama, etc.  
+    Obviamos mencionar la parte donde el emisor usa un estimador probabilistico para determinar la probabilodad que el bit recibido haya sido el bit enviado.   
