@@ -1,4 +1,4 @@
-1) Vamos a empezar observando cómo se organiza la información dentro de una red local:   
+	1) Vamos a empezar observando cómo se organiza la información dentro de una red local:   
 
     a) ¿Qué función cumple la capa de enlace dentro del modelo OSI? ¿Qué tipo de comunicación resuelve?   
 
