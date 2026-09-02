@@ -18,3 +18,13 @@ Se encarga de las comunicaciones nodo a nodo, a diferencia con la capa de red qu
 b) Una dirección MAC por sus siglas en inglés **Medium Access Control** es un identificador para la red local grabado en el hardware (en la ROM) de la tarjeta de red del end-device. Este indentificador solo es visible para la red local, no se expone al exterior, para esos casos es donde se usa la dirección **IP**
 La **IP** es la dirección asignada por el Router a ese dispositvo en particular, y si es expuesta (cuando se lo requiera y mediante el router) a exterior.
 
+
+c) Una trama Ethernet es la unidad de datos de la capa de enlace en redes locales, basicamente es la unidad de datos que se transmite en la red local via Ethernet. Sus distintos campos son:
+
+SDF (Start Frame Delimiter), Preambulo y delimitador de inicio para sincronizacion.
+Incluye las direcciones MAC de destino y origen
+Campo de longitud (Ethertype)
+La carga util o payload
+Por ultimo finaliza con una secuencia de comprobacion de trama con FCS(Frame Check Sequence) o CRC(Cyclic Redundancy Check)
+
+d) El campo Ethertype, aparte de solo longitud, tambien especifica de manera especifica el protocolo de red que se esta utilizando, por ejemplo IPv4 o IPv6.
