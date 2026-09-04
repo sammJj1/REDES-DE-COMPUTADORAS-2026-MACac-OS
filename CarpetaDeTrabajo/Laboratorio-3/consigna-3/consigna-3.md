@@ -49,12 +49,12 @@ Tras este intercambio, la conexion pasa al estado establecida y queda abierta la
 
 
 d)
+![](Imagenes/Pasted%20image%2020260904163552.png)
 
-![[Pasted image 20260904153118.png|574]]
 
 e)
-![[Pasted image 20260904153634.png|700]]
+![](Imagenes/Pasted%20image%2020260904163615.png)
 
-![[Pasted image 20260904154159.png]]
+![](Imagenes/Pasted%20image%2020260904163631.png)
 
 f) Llegamos a la conclusion de que es bastante inseguro usar un Wi-Fi publico de cualquier sitio. Cualquier persona podria estar usando wireshark y viendo todas las cosas que estoy mandando asi como nosotros vimos los paquetes que mandamos.
