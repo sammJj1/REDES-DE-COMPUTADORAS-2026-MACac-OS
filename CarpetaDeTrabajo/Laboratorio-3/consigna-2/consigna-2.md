@@ -6,22 +6,22 @@ d) Observar el campo EtherType. ¿Qué protocolo está encapsulado dentro de la 
 
 
 ## 2)
-![[Imagen-Wireshark.png]]
+![](/CarpetaDeTrabajo/Laboratorio-3/consigna-2/Imagenes/Imagen-Wireshark.png) 
 
 
 
 ## a) Dirección Mac 
-![[Imagen-Direccion-MAC.png]]
-MAC Origen: 2c:98:11:60:91:bf (CloudNetwork_60:91:bf) → Placa de red de mi PC 
-MAC Destino: 14:8c:4a:25:41:f2 (HuaweiTechno_25:41:f2) → Router 
+![](/CarpetaDeTrabajo/Laboratorio-3/consigna-2/Imagenes/Imagen-Direccion-MAC.png) 
+- MAC Origen: 2c:98:11:60:91:bf (CloudNetwork_60:91:bf) → Placa de red de mi PC 
+- MAC Destino: 14:8c:4a:25:41:f2 (HuaweiTechno_25:41:f2) → Router 
 
 Wireshark nos permite visualizarlos dado que los primeros 3 bytes de una dirección MAC identifican al fabricante, conocidos como OUI (Identificador Único de Organización). Así podemos ver que se trata de un paquete saliente, siendo el emisor físico local el adaptador de red de mi PC y el receptor local el router. 
 
 
 ## b) Direcciones IP
-![[Imagen-direcciones-IP.png]]
-P Origen: 192.168.1.16 (Src) -> IPv4 
-IP Destino: 200.16.29.213 (Dst) -> IPv4
+![](/CarpetaDeTrabajo/Laboratorio-3/consigna-2/Imagenes/Imagen-direcciones-IP.png)
+- IP Origen: 192.168.1.16 (Src) -> IPv4 
+- IP Destino: 200.16.29.213 (Dst) -> IPv4
 
 
 ## c) Comparación entre direcciones MAC e IP
@@ -32,5 +32,6 @@ En este mismo ejemplo podemos observar como la IP de destino (200.16.29.213) ide
 
 
 ##  d) Campo EtherType
-![[Imagen-campo-EtherType.png]]
+![](/CarpetaDeTrabajo/Laboratorio-3/consigna-2/Imagenes/Imagen-campo-EtherType.png)
+
 Según lo que indica el campo EtherType, el protocolo que está encapsulado dentro de la trama es IPv4 (0x0800).
