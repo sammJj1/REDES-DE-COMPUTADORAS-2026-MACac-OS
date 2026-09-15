@@ -1,4 +1,5 @@
-Para realizar esta consigna seguimos las instrucciones del profe con la aplicacion packet sender, la direccion ip del servidor es 34.136.251.235, y el puerto que escuchaba la conexion para la actividad es 5555, luego de establecer la conexion de forma correcta se procedio a escribir el nombre de todos los grupos participantes para saber cual es la url que estaba "escondida", los resultados de esa prueba fueron 
+Para realizar esta consigna seguimos las instrucciones del profe con la aplicacion packet sender, la direccion ip del servidor es 34.136.251.235, y el puerto que escuchaba la conexion para la actividad es 5555, luego de establecer la conexion de forma correcta se procedio a escribir el nombre de todos los grupos participantes para saber cual es la url que estaba "escondida", los resultados de esa prueba fueron:
+ 
 #hiddenssid
 
 seq: 1, payload: ht

@@ -28,6 +28,7 @@ Wireshark nos permite visualizarlos dado que los primeros 3 bytes de una direcci
 Las direcciones MAC e IP no representan lo mismo  
 * Las direcciones MAC tienen alcance de tramo local (hop-by-hop) 
 * Las direcciones IP tienen alcance global extremo a extremo (end-to-end) 
+  
 En este mismo ejemplo podemos observar como la IP de destino (200.16.29.213) identifica directamente al servidor web final en la red externa para viajar a través de múltiples puntos, mientras que la MAC solo identifica a mi router local.
 
 
