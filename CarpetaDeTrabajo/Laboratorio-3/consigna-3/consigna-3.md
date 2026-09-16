@@ -1,3 +1,19 @@
+3) Vamos ahora a subir una capa y observar el transporte de información mediante TCP. 
+
+	a) ¿Qué problema(s) resuelve TCP que no resuelve directamente Ethernet ni IP? 
+
+	b) Investigar los campos más importantes de la metadata en un frame TCP. ¿Para qué sirve cada uno? 
+
+	c) Explicar el Three y Four way handshake en TCP. 
+
+	d) Iniciar la conexión enviando un paquete, capturar el handshake y el paquete de datos. Analizar el paquete de datos, sus distintas partes y encontrar la carga útil del paquete usando WireShark. 
+
+	e) Finalizar la conexión y capturar el Four-way handshake. 
+
+	f) ¿Qué conclusión podemos sacar de que sea tan fácil ver un paquete que viaja a través de la red? 
+
+---
+
 a) 
 TCP resuelve directamente los problemas de fiabilidad y coordinación de extremo a extremo que ni Ethernet ni IP abordan por sí mismos:
 
