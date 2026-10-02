@@ -40,7 +40,7 @@ line vty 5 15
 end
 ```
 
-#### swith-2
+#### switch-2
 
 ```
 Building configuration...
@@ -208,10 +208,12 @@ GigabitEthernet0/1 unassigned YES manual administratively down down
 GigabitEthernet0/2 unassigned YES manual administratively down down
 ```
 ### f) Guardado de configuración
-####`copy running-config startup-config`
+#### `copy running-config startup-config`
 ### g) Test de comunicación — Ping entre PC-A y PC-B
-![[Ping PCA a PCB.png]]
-![[Ping PCB a PCA.png]]
+![](/CarpetaDeTrabajo/Laboratorio-4/consigna-2/Imagenes/PingPCAaPCB.png) 
+
+![](/CarpetaDeTrabajo/Laboratorio-4/consigna-2/Imagenes/PingPCBaPCA.png)
+
 
 > **Interpretación:** ambos pings fueron exitosos. En este punto PC-A y PC-B, junto con SW-1 y SW-2, se encuentran todos dentro del mismo dominio de broadcast (VLAN 1, la VLAN por defecto), por lo que la comunicación ocurre íntegramente a nivel de capa 2 (direcciones MAC), sin necesidad de un router.
 

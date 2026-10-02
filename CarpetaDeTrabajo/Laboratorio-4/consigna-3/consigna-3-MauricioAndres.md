@@ -24,7 +24,7 @@ Se utilizó como fondo del workspace una imagen de avión, replicando la disposi
 
 **Diagrama de red completo (Packet Tracer):**
 
-![[Topologia.png]]
+![](/CarpetaDeTrabajo/Laboratorio-4/consigna-3/Imagenes/Topologia.png)
 
 ---
 
