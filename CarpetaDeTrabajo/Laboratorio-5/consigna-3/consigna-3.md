@@ -1,28 +1,28 @@
 #### EXPERIMENTO TCP: Captura en loopback con filtro tcp.port == 12000
 - Terminal A (Servidor)
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/ncatA-tcp.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/ncatA-tcp.png)
 
 - Terminal B (Cliente)
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/ncatB-tcp.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/ncatB-tcp.png)
 
 - *Captura en Wireshark:*
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/wireshark-tcp.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/wireshark-tcp.png)
 
 #### EXPERIMENTO UDP: Captura en loopback con filtro udp.port == 12001
 - Terminal A (Servidor)
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/ncatA-udp.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/ncatA-udp.png)
 
 - Terminal B (Cliente)
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/ncatB-udp.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/ncatB-udp.png)
 
 - *Captura en Wireshark:*
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/wireshark-udp.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/wireshark-udp.png)
 
 #### RESPUESTAS A LA CONSIGNAS EXPERIMENTALES
 #### a) ¿Qué pasó en la red cuando ejecutaron el comando del cliente, antes de escribir el primer mensaje? Compárenlo con TCP
@@ -37,11 +37,11 @@ Cuando ejecutamos el comando del cliente, antes de escribir el primer mensaje "H
         
     3. Cliente -> Servidor: `[ACK]`
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/3a-1.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/3a-1.png)
 
 - **En UDP:** No pasó nada al ejecutar el cliente, ya que UDP es un protocolo no orientado a conexión
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/3a-2.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/3a-2.png)
 
 #### b) ¿Cuántos datagramas generó cada mensaje? ¿Hay algo parecido a un ACK?
 
@@ -65,7 +65,7 @@ En cambio, vemos que en TCP se generaron 2 segmentos con la presencia de ACK par
 	    - Checksum
 	    - Urgent Pointer
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/3c-1.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/3c-1.png)
 
 - **Encabezado UDP:**
     
@@ -77,7 +77,7 @@ En cambio, vemos que en TCP se generaron 2 segmentos con la presencia de ACK par
 	    - Length 
 	    - Checksum
         
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/3c-2.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/3c-2.png)
 
 #### d) ¿Qué pasó en la red al cerrar el cliente con Ctrl+C? ¿Y en TCP?
 
@@ -89,13 +89,13 @@ En cambio, vemos que en TCP se generaron 2 segmentos con la presencia de ACK par
 Para enviar la misma frase:
 - **UDP:** Se necesitó 1 paquete por mensaje.
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/3e-1.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/3e-1.png)
 
  - **TCP:** Se necesitó 2 paquetes por mensaje.
 	- 1 con los datos (PSH/ACK)
 	- 1 de confirmación de recepción (ACK)
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/3e-2.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/3e-2.png)
 
 Esto se debe a que con los paquetes extra de TCP "compramos":
     
@@ -112,7 +112,7 @@ Esto se debe a que con los paquetes extra de TCP "compramos":
         
     - Como el puerto 12000 está cerrado, el destino responde con un segmento TCP con la bandera `[RST, ACK]` (Reset), indicando que el puerto no está activo y rechaza la conexión. 
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/3f-1.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/3f-1.png)
 
 - **En UDP:**
     - Al escibir un mensaje y darle Enter, el cliente envía el datagrama UDP al puerto 12001.
