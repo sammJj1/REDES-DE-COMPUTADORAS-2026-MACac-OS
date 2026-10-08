@@ -134,4 +134,4 @@ Esto se debe a que con los paquetes extra de TCP "compramos":
         
     - Como no hay ningún proceso escuchando en 12001, la pila de red receptora descarta el paquete y responde con un mensaje **ICMP: "Destination Unreachable (Port Unreachable)"**.
 
-![](/CarpetaDeTrabajo/Laboratorio-5/Consigna-3/Imagenes/3f-2.png)
+![](/CarpetaDeTrabajo/Laboratorio-5/consigna-3/Imagenes/3f-2.png)
