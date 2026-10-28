@@ -42,7 +42,7 @@ Se conectaron las computadoras de los grupos a un switch comun de 8 puertos util
 * Desde nuestra computadora se enviaron mensajes al servidor en `192.168.1.110:5000` 
 * Capturamos el trafico con la aplicación Wireshark 
 
-![](/CarpetaDeTrabajo/Laboratorio-6/Imagenes/captura-wireshark.png)
+![](/CarpetaDeTrabajo/Laboratorio-6/Imagenes/Captura-wireshark.png)
 
 ### Cuestionario y Preguntas de la Parte 2
 
