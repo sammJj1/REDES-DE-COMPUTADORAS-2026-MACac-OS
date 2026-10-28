@@ -17,10 +17,11 @@ Proceso de investigación:
 ### 2. Construcción y Verificación 
 * Luego de investigar se construyo un cable de red de aproximadamente 1 metro.
 
-![](/CarpetaDeTrabajo/Laboratorio-6/Imagenes/imagen_cable.png)
+![](/CarpetaDeTrabajo/Laboratorio-6/Imagenes/Imagen_cable.png)
+
 * Mediante una inspección visual de un cable de otro grupo se verifico que los hilos estuvieran bien crimpeados y posicionados, se dio el cable a otro grupo asi realizan la inspección de nuestro cable tanto visual como con un tester. 
 
-<video src="/CarpetaDeTrabajo/Laboratorio-6/Imagenes/Video_verificacionmp4.mp4" controls width="100%"></video>
+![](/CarpetaDeTrabajo/Laboratorio-6/Imagenes/Video_verificacion.gif)
 
 ## Parte 2
 
