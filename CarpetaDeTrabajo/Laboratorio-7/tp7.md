@@ -326,16 +326,62 @@ paridad del `CHECK`** (por eso la paridad no alcanza para decidir).
 # Reflexiones e investigación
 
 ### 6.1 Errores en dos bits y bits de control
+  #### Errores en dos bits de filas y columnas distintas:
+La comprobación de paridad fallará en 2 filas y en 2 columnas. Al cruzar las 2 filas y las 2 columnas que dan error, se forman 4 intersecciones posibles (los vértices de un rectángulo dentro de la matriz). El sistema detecta que ocurrió un error, pero no puede corregirlo, ya que es matemáticamente imposible determinar cuál de las dos diagonales contenía los bits originales alterados sin arriesgarse a modificar bits correctos.
+
+  #### Si se daña un bit de los de control (bit de paridad):
+Fallará únicamente 1 fila (si el error ocurrió en los bits de control de fila) o 1 columna (si ocurrió en los de columna), mientras que el otro eje no mostrará ningún fallo.
+Al recalcular la paridad sobre los datos recibidos, el receptor notará que todos los datos de la matriz concuerdan entre sí salvo con ese único bit de control. Por lo tanto, el algoritmo detecta y corrige el fallo invirtiendo el bit de control afectado, dejando la matriz de datos intacta.
+
 
 
 ### 6.2 “Leer y adivinar” vs. código
+  #### Para información crítica
+No. Las contraseñas, números de cuenta, direcciones IP/URL o claves criptográficas carecen de redundancia semántica o contexto gramatical. Alterar un solo bit en un número de cuenta cambia por completo su valor o destino, haciendo imposible "deducir" el contenido original por contexto.
+  ####leer y adivinar
+Aporta un mecanismo preciso, algorítmico y automatizado de detección y corrección de errores (FEC) independiente del significado de los datos.
+*Automatización a nivel de Hardware*: Permite que las placas de red y sistemas de comunicación procesen y corrigan tramas de datos a nivel de bit en tiempo real sin intervención humana ni suposiciones.
+
 
 ### 6.3 Diseño de un código para el paquete
+*Verificación Matemática (Síndrome)*: Se recalcula la paridad de cada fila y de cada columna sobre la matriz ya corregida y se compara con los bits de control. Si todos los síndromes dan resultado correcto, la matriz es consistente.
+Luego utilizamos el contenido de la trama corregido, para a través de un script decodificar_mensaje.py, pasaramos la trama de valor binario a un texto ASCII para comprobar su contenido (podía ser un video random, un mensaje, o el mensaje del premio).
 
 
-### 6.4 Hamming (7,4)
+## 6.4 Hamming (7,4)
+### Código Hamming (7,4)
 
----
+El código **Hamming (7,4)** es una técnica clásica de corrección de errores en recepción que trabaja agrupando la información en bloques fijos de **7 bits**. De esos 7 bits, 4 representan los datos reales que se quieren transmitir y 3 son bits de paridad agregados para control.
+
+A diferencia del método bidimensional utilizado en el laboratorio, donde las paridades se agregan al final de filas y columnas, **Hamming** intercala estratégicamente los 3 bits de control en las posiciones que son **potencias de dos** (posiciones 1, 2 y 4 del bloque), mientras que los 4 bits de datos ocupan las posiciones restantes (3, 5, 6 y 7). Cada bit de paridad se encarga de supervisar un subconjunto específico de los bits de datos.
+
+Cuando el receptor obtiene los 7 bits, evalúa tres ecuaciones de paridad. El resultado de estas tres comprobaciones genera un número binario de 3 bits denominado **síndrome**.
+
+- Si el síndrome da como resultado **000**, significa que no se detectaron errores.
+- Si el síndrome es distinto de cero, ese número traducido a decimal indica exactamente la posición del bit que sufrió la alteración (de la posición 1 a la 7), suponiendo que ocurrió un único error.
+
+Como en el sistema binario solo existen ceros y unos, una vez identificada la posición exacta del fallo, el receptor simplemente invierte el valor de dicho bit y recupera la información original.
+
+### Ventajas del código Hamming (7,4)
+
+Esta técnica presenta algunas ventajas técnicas frente a la paridad bidimensional utilizada en la práctica:
+
+- **Procesamiento por bloques pequeños:** Hamming (7,4) trabaja con bloques de 7 bits, por lo que no necesita almacenar una matriz grande de datos. Sin embargo, sí requiere disponer de los bits del bloque para efectuar las comprobaciones.
+
+- **Procesamiento rápido en hardware:** El cálculo del síndrome se resuelve mediante combinaciones de compuertas lógicas XOR, lo que permite implementar circuitos sencillos y rápidos para detectar y corregir errores.
+
+- **Eficiencia de transmisión:** De cada 7 bits transmitidos, 4 contienen información útil y 3 corresponden a bits de control. Esto representa una eficiencia de transmisión del **57,14 %**. Su eficiencia respecto de la paridad bidimensional depende del tamaño de los bloques utilizados.
+
+### Limitaciones
+
+Es importante destacar que el código **Hamming (7,4)** permite:
+
+- **Corregir errores de un único bit** por bloque.
+- **Detectar errores de dos bits**, aunque no puede corregirlos.
+- No garantiza detectar todos los errores cuando se alteran tres o más bits.
+
+Por lo tanto, Hamming (7,4) no es necesariamente superior a la paridad bidimensional en todas las situaciones. Su principal ventaja es la capacidad de corregir automáticamente un error individual mediante un procedimiento sencillo.
+
 
 ## 7. Conclusiones
 
