@@ -56,6 +56,7 @@
 - Anexo A — Cálculo del overhead de HTTP y MQTT
 - Anexo B — Ejemplos de configuración
 - Anexo C — Glosario de siglas
+- Anexo D — Fuentes de los precios
 
 ---
 
@@ -73,7 +74,7 @@ A partir de los conceptos vistos en Redes de Computadoras, se analiza:
 - cómo se identifican y comunican los distintos dispositivos;
 - qué ocurre desde que un usuario selecciona una acción en su celular hasta que, por ejemplo, una lámpara recibe la orden de encenderse.
 
-Finalmente, se propone una implementación concreta con equipos comerciales y un Home Server armado con una computadora propia y software libre.
+Finalmente, se propone una implementación concreta que puede replicarse en cualquier vivienda: se mantienen el router existente y dispositivos comerciales estándar (lámparas, enchufes y sensores), y se reemplaza el sistema que los controla (un asistente como Alexa o la aplicación en la nube del fabricante) por un Home Server armado con una computadora propia y software libre.
 
 ## 1.1. Objetivos
 
@@ -87,7 +88,7 @@ Finalmente, se propone una implementación concreta con equipos comerciales y un
 - Relacionar los protocolos y mecanismos utilizados con las capas del modelo TCP/IP.
 - Analizar el recorrido de una orden desde un dispositivo de usuario, como un celular, hasta un dispositivo IoT de la vivienda.
 - Analizar los mecanismos de seguridad necesarios para proteger el broker y los dispositivos IoT, considerando autenticación, control de acceso, cifrado mediante TLS y segmentación de la red.
-- Proponer una implementación con un Home Server propio y software libre, seleccionando los equipos y estimando su costo.
+- Proponer una implementación por etapas, con el router existente, dispositivos comerciales estándar y un Home Server propio con software libre, seleccionando los equipos y estimando su costo.
 
 ## 1.2. Motivación y arquitectura general
 
@@ -95,16 +96,17 @@ La elección de una casa inteligente basada en un Home Server y el protocolo MQT
 
 Desde el punto de vista de las comunicaciones de datos, una casa inteligente es un escenario completo para analizar cómo se transmite la información desde un dispositivo de usuario hasta un dispositivo final. En ese recorrido intervienen el direccionamiento IP, las redes locales, el encaminamiento, los routers, los servidores y los protocolos de comunicación.
 
-Además, la mayoría de los productos comerciales de domótica dependen de servidores del fabricante en Internet. Un Home Server permite estudiar la alternativa: una arquitectura en la que los servicios se gestionan dentro de la propia red doméstica, con protocolos abiertos.
+Además, la mayoría de los productos comerciales de domótica dependen de servidores del fabricante en Internet. Una lámpara inteligente controlada por Alexa, por ejemplo, recibe la orden desde la nube, aunque el celular y la lámpara estén en la misma habitación. Muchos de estos dispositivos ya usan MQTT, pero contra un broker ubicado en los servidores del fabricante. Un Home Server permite estudiar la alternativa: **se conservan los dispositivos y se trae el broker a la casa**, de modo que los servicios se gestionan dentro de la propia red doméstica, con protocolos abiertos.
 
 La Figura 1.1 resume la arquitectura que se analiza en este trabajo:
 
-- el router da salida a Internet y Wi-Fi a los usuarios;
-- el Home Server concentra el broker MQTT, las automatizaciones y la seguridad;
-- los dispositivos IoT quedan en una red propia, separada de la red de los usuarios, a la que solo accede el Home Server.
+- el router existente de la casa da salida a Internet y Wi-Fi a los usuarios;
+- el Home Server reemplaza al asistente o a la nube del fabricante: concentra el broker MQTT, las automatizaciones y la seguridad;
+- los dispositivos comerciales Zigbee (lámpara y sensores) se comunican con el Home Server a través de un coordinador USB;
+- opcionalmente, los dispositivos Wi-Fi quedan en una red propia, separada de la red de los usuarios, a la que solo accede el Home Server.
 
 ![Figura 1.1](Imagenes/img/fig1_1_arquitectura_general.png)
-a
+
 *Figura 1.1: Arquitectura general de la Smart Home propuesta. Fuente: elaboración propia.*
 
 ---
@@ -117,15 +119,16 @@ Para soportar el intercambio constante de mediciones y comandos en una Smart Hom
 
 Las redes domésticas modernas usan mayoritariamente una topología en **estrella** o **estrella extendida**, en la que todos los nodos se comunican a través de equipos de interconexión centrales. Los componentes que estructuran esta topología son:
 
-- **Router (enrutador).** Es el dispositivo de frontera que conecta la red doméstica con Internet a través del proveedor (ISP). Opera en la capa de red (capa 3): decide si un paquete es local o debe salir hacia Internet, y en ese caso lo envía por su ruta por defecto hacia el proveedor. También implementa NAT (ver 2.2).
-- **Switch (conmutador).** Opera en la capa de enlace (capa 2) y concentra los dispositivos cableados mediante Ethernet (IEEE 802.3). El Home Server se conecta a un switch por cable, para tener un enlace estable, sin interferencias y con ancho de banda dedicado.
-- **Punto de acceso (AP).** Como la mayoría de los nodos IoT (lámparas, sensores, relés) no tienen conexión cableada, el AP es fundamental: hace de puente entre el medio inalámbrico Wi-Fi (IEEE 802.11) y la red cableada. En la arquitectura propuesta hay dos: el que integra el router, para los usuarios, y uno exclusivo para los dispositivos IoT, conectado directamente al Home Server.
+- **Router (enrutador).** Es el router que ya tiene la vivienda, sin requisitos especiales. Es el dispositivo de frontera que conecta la red doméstica con Internet a través del proveedor (ISP). Opera en la capa de red (capa 3): decide si un paquete es local o debe salir hacia Internet, y en ese caso lo envía por su ruta por defecto hacia el proveedor. También implementa NAT (ver 2.2).
+- **Switch (conmutador).** Opera en la capa de enlace (capa 2) y concentra los dispositivos cableados mediante Ethernet (IEEE 802.3). Los routers domésticos ya integran un pequeño switch con varios puertos LAN, al que se conecta el Home Server por cable, para tener un enlace estable, sin interferencias y con ancho de banda dedicado. Un switch externo solo hace falta si no quedan puertos libres.
+- **Punto de acceso (AP).** Como la mayoría de los nodos IoT (lámparas, sensores, relés) no tienen conexión cableada, el AP es fundamental: hace de puente entre el medio inalámbrico Wi-Fi (IEEE 802.11) y la red cableada. En la arquitectura propuesta, el AP principal es el que integra el router. Si se usan dispositivos IoT Wi-Fi, se agrega uno exclusivo para ellos, conectado directamente al Home Server.
 - **Dispositivos finales (hosts).** Son los equipos ubicados en el extremo de la red que generan o consumen información: celulares, computadoras, sensores y actuadores. En MQTT asumen el rol de publicadores (*publishers*) y suscriptores (*subscribers*).
 
-La casa queda organizada en **dos redes**:
+La casa queda organizada en hasta **tres redes**:
 
-- la **red principal**, administrada por el router, donde están los celulares y computadoras;
-- la **red IoT**, que cuelga de una segunda interfaz de red del Home Server.
+- la **red principal**, administrada por el router, donde están los celulares, las computadoras y el Home Server;
+- la **red Zigbee**, que no usa IP y conecta los dispositivos comerciales (lámparas y sensores) con el coordinador USB del Home Server (sección 3.1);
+- opcionalmente, la **red IoT Wi-Fi**, que cuelga de una segunda interfaz de red del Home Server y aloja los dispositivos Wi-Fi.
 
 El motivo de esta separación se desarrolla en la sección 6.3.
 
@@ -141,11 +144,11 @@ Los dispositivos de la Smart Home pueden agruparse en tres tipos según su funci
 
 | Tipo | Ejemplos | Conectividad | Alimentación | Rol en MQTT |
 |---|---|---|---|---|
-| Sensor | Temperatura, movimiento, puerta | Wi-Fi o Zigbee | Batería o USB | Publica |
-| Actuador | Relé de luz, enchufe, persiana | Wi-Fi o Zigbee | Red eléctrica | Se suscribe y publica su estado |
+| Sensor | Movimiento, apertura de puertas, temperatura, humo, agua | Zigbee (o Wi-Fi) | Batería | Publica |
+| Actuador | Lámpara, enchufe, llave de luz, persiana | Zigbee o Wi-Fi | Red eléctrica | Se suscribe y publica su estado |
 | Interfaz de usuario | Celular, PC | Wi-Fi o cable | Batería o red eléctrica | Envía órdenes y lee estados |
 | Núcleo | Home Server, coordinador Zigbee | Cable y USB | Red eléctrica | Broker y pasarela |
-| Infraestructura | Router, switch, AP | Cable y Wi-Fi | Red eléctrica | No participa: transporta |
+| Infraestructura | Router, AP (y switch, si hace falta) | Cable y Wi-Fi | Red eléctrica | No participa: transporta |
 
 *Tabla 2.1: Tipos de dispositivos de la Smart Home.*
 
@@ -158,7 +161,9 @@ Para que el broker, los celulares y los sensores puedan comunicarse, cada equipo
 En la arquitectura propuesta se usan dos rangos privados:
 
 - **Red principal (192.168.1.0/24):** la administra el router. El Home Server tiene en ella la dirección 192.168.1.10.
-- **Red IoT (192.168.20.0/24):** la administra el Home Server, que tiene la dirección 192.168.20.1.
+- **Red IoT Wi-Fi (192.168.20.0/24), opcional:** la administra el Home Server, que tiene la dirección 192.168.20.1.
+
+Los dispositivos Zigbee no reciben dirección IP: se identifican dentro de su propia red, y el Home Server los representa en el broker (sección 3.1).
 
 **Asignación de direcciones: DHCP y direcciones fijas.** Las direcciones se asignan habitualmente mediante **DHCP** (*Dynamic Host Configuration Protocol*), que automatiza la entrega de la IP, la máscara de subred y la puerta de enlace. Cada dirección se presta por un tiempo determinado. Esto es adecuado para dispositivos que se conectan y desconectan con frecuencia, como los celulares.
 
@@ -166,9 +171,9 @@ Para la infraestructura crítica, en cambio, el direccionamiento dinámico es un
 
 - el servidor y los nodos IoT importantes reciben siempre la misma dirección, mediante una **reserva DHCP** basada en su dirección MAC;
 - en la red principal, el servidor DHCP es el router;
-- en la red IoT, es el propio Home Server.
+- en la red IoT Wi-Fi, es el propio Home Server.
 
-**Resolución ARP.** Aunque las aplicaciones identifican los destinos por su dirección IP, la entrega real de los datos dentro de la LAN requiere la dirección MAC de la placa de red de destino. La traducción entre ambas la realiza **ARP** (*Address Resolution Protocol*). Cuando el Home Server necesita enviar una orden a un relé cuya IP conoce, el proceso es el siguiente (Figura 2.2):
+**Resolución ARP.** Aunque las aplicaciones identifican los destinos por su dirección IP, la entrega real de los datos dentro de la LAN requiere la dirección MAC de la placa de red de destino. La traducción entre ambas la realiza **ARP** (*Address Resolution Protocol*). Cuando el Home Server necesita enviar una orden a un relé inteligente Wi-Fi cuya IP conoce, el proceso es el siguiente (Figura 2.2):
 
 1. El servidor verifica que la IP de destino pertenece a su misma subred.
 2. Si no tiene la MAC del relé en su memoria caché, envía una solicitud ARP por **difusión** (*broadcast*) a toda la red.
@@ -218,9 +223,9 @@ Su función principal es abstraer los protocolos. En una casa real conviven disp
 
 La ventaja de este diseño es el **desacoplamiento**: quien detecta el cambio no necesita saber quién va a reaccionar, y quien reacciona no necesita saber quién lo originó. Por eso se pueden agregar automatizaciones nuevas sin modificar las existentes. Es la misma idea que el modelo publicación/suscripción de MQTT (sección 4.1).
 
-**Redes de sensores de baja potencia.** Muchos sensores a batería no usan Wi-Fi, sino el estándar IEEE 802.15.4, pensado para enlaces de bajo consumo con tramas de hasta 127 bytes. **Zigbee** funciona sobre este estándar con su propia pila de protocolos, que no es IP. Por eso necesita una pasarela para comunicarse con el resto de la red: un **coordinador** USB conectado al Home Server, junto con un programa que traduce los mensajes Zigbee a MQTT. Otras tecnologías, como **Thread**, sí transportan IPv6 sobre 802.15.4 mediante la capa de adaptación 6LoWPAN (RFC 4944).
+**Redes de sensores de baja potencia.** Muchos sensores a batería no usan Wi-Fi, sino el estándar IEEE 802.15.4, pensado para enlaces de bajo consumo con tramas de hasta 127 bytes. **Zigbee** funciona sobre este estándar con su propia pila de protocolos, que no es IP. Por eso necesita una pasarela para comunicarse con el resto de la red. En los productos comerciales, ese papel lo cumple el *hub* de la marca o el asistente (algunos modelos de Alexa traen uno integrado). En este trabajo lo cumple un **coordinador** USB conectado al Home Server, junto con un programa que traduce los mensajes Zigbee a MQTT. Así, una lámpara o un sensor comercial Zigbee de cualquier marca puede integrarse sin depender de la nube del fabricante. Otras tecnologías, como **Thread**, sí transportan IPv6 sobre 802.15.4 mediante la capa de adaptación 6LoWPAN (RFC 4944).
 
-**Resolución de nombres.** Para que los dispositivos encuentren al broker por nombre y no dependan de su dirección IP, el Home Server ofrece un servicio de **DNS** en la red IoT (por ejemplo, `broker.casa` → 192.168.20.1). Otra alternativa habitual en redes domésticas es **mDNS** (DNS multicast, RFC 6762), que resuelve nombres sin un servidor: la consulta se envía por *multicast* a toda la red local (224.0.0.251, puerto UDP 5353) y responde el equipo que tiene ese nombre. Como el multicast no sale de su propia red, mDNS no sirve para comunicar la red IoT con la principal.
+**Resolución de nombres.** Para que los dispositivos Wi-Fi encuentren al broker por nombre y no dependan de su dirección IP, el Home Server ofrece un servicio de **DNS** en la red IoT (por ejemplo, `broker.casa` → 192.168.20.1). Otra alternativa habitual en redes domésticas es **mDNS** (DNS multicast, RFC 6762), que resuelve nombres sin un servidor: la consulta se envía por *multicast* a toda la red local (224.0.0.251, puerto UDP 5353) y responde el equipo que tiene ese nombre. Como el multicast no sale de su propia red, mDNS no sirve para comunicar la red IoT con la principal.
 
 **Software del Home Server.** La Figura 3.1 muestra cómo se organiza el servidor propuesto:
 
@@ -244,7 +249,7 @@ Para compararlas se analizan cuatro aspectos: los componentes del retardo, las c
 
 ![Figura 3.2](Imagenes/img/fig3_2_local_vs_cloud.png)
 
-*Figura 3.2: Topología local frente a topología Cloud. Fuente: [completar si la imagen no es de elaboración propia].*
+*Figura 3.2: Topología Cloud frente a topología local. Fuente: elaboración propia.*
 
 **Componentes del retardo.** Cada vez que un paquete atraviesa un nodo (un router, un switch o el propio servidor), sufre un **retardo nodal** compuesto por cuatro términos (Kurose y Ross, 2017):
 
@@ -299,7 +304,7 @@ Para un evento de control, como activar una alarma o accionar un interruptor, es
 - **En el modelo Cloud,** esos datos viajan por la red pública y se guardan en servidores de terceros. Quedan expuestos a interceptaciones, a fallas de seguridad del proveedor o a cambios en sus políticas de privacidad.
 - **Con el Home Server,** las mediciones, el estado de los sensores y las imágenes quedan dentro de la vivienda, en discos de la propia casa. Esto es coherente con el principio de privacidad desde el diseño.
 
-**Dependencia del fabricante.** Cuando el sistema depende de la nube del fabricante, también depende de que esa empresa siga funcionando. Si cambia su interfaz de programación, cobra por funciones que antes eran gratuitas o cierra sus servidores, los dispositivos quedan inutilizables aunque el hardware funcione, y terminan como residuo electrónico. El Home Server reduce este riesgo porque integra los dispositivos de forma local y con protocolos abiertos.
+**Dependencia del fabricante.** Cuando el sistema depende de la nube del fabricante, también depende de que esa empresa siga funcionando. Si cambia su interfaz de programación, cobra por funciones que antes eran gratuitas o cierra sus servidores, los dispositivos quedan inutilizables aunque el hardware funcione, y terminan como residuo electrónico. El Home Server reduce este riesgo porque integra los dispositivos de forma local y con protocolos abiertos. Por eso conviene elegir dispositivos basados en estándares, como Zigbee, que funcionan con cualquier coordinador compatible y no solo con el de su marca.
 
 | Aspecto | Topología local (Home Server) | Topología Cloud |
 |---|---|---|
@@ -325,7 +330,7 @@ Esto se explica por lo que ocurre en las capas inferiores (Figura 3.4).
 
 ![Figura 3.4](Imagenes/img/fig3_4_modo_offline.png)
 
-*Figura 3.4: Tolerancia a fallos en modo offline. Fuente: [completar si la imagen no es de elaboración propia].*
+*Figura 3.4: Funcionamiento de la casa ante un corte de Internet. Fuente: elaboración propia.*
 
 **Capa de enlace.** Los switches y puntos de acceso de la LAN no dependen de Internet. Los switches arman su tabla de reenvío con un algoritmo de aprendizaje: miran la dirección MAC de origen de cada trama y la asocian al puerto por el que llegó. Con esa tabla siguen conmutando tramas entre los dispositivos locales.
 
@@ -333,7 +338,7 @@ Esto se explica por lo que ocurre en las capas inferiores (Figura 3.4).
 
 **Redes de malla autónomas.** La red Zigbee forma una red de área personal inalámbrica (WPAN) en malla, que no depende del router Wi-Fi ni de la infraestructura IP de la casa: se comunica directamente con el coordinador USB del Home Server. Un corte de la red externa no la afecta.
 
-**La red IoT no depende del router.** En la arquitectura propuesta, la red IoT cuelga de la segunda interfaz del Home Server. Por eso, incluso si se cae el router, los ESP32, los relés y los sensores Zigbee siguen comunicándose con el broker, y las automatizaciones siguen corriendo. Solo se pierde el control desde el celular, que depende del Wi-Fi del router.
+**Los dispositivos no dependen del router.** En la arquitectura propuesta, los dispositivos Zigbee se conectan al Home Server a través del coordinador USB, y los dispositivos Wi-Fi opcionales, a través de su segunda interfaz. Por eso, incluso si se cae el router, la lámpara, los sensores y el relé Wi-Fi siguen comunicándose con el broker, y las automatizaciones siguen corriendo. Solo se pierde el control desde el celular, que depende del Wi-Fi del router.
 
 **Lógica de control local.** El Home Server guarda en su memoria la lógica de control, los perfiles de usuario y el estado actualizado de los dispositivos. No necesita consultar un servicio externo cada vez que se dispara una regla. Cuando se activa un sensor de movimiento:
 
@@ -379,7 +384,7 @@ Este modelo centraliza el servicio, lo que facilita la administración, pero gen
 
 ![Figura 4.1](Imagenes/img/fig4_1_pub_sub.png)
 
-*Figura 4.1: Modelo de publicación/suscripción. Fuente: [completar].*
+*Figura 4.1: Modelo de publicación/suscripción. Fuente: elaboración propia.*
 
 Por ejemplo, un sensor de temperatura publica periódicamente sus mediciones en el topic `casa/cocina/temperatura`. El sensor no necesita saber qué dispositivos van a usar ese dato; una automatización o la aplicación del celular pueden estar suscritas y recibirlo.
 
@@ -390,11 +395,11 @@ Además:
 - un mismo cliente puede ser publicador y suscriptor a la vez: la lámpara recibe órdenes en un topic y publica su estado en otro;
 - si varios clientes están suscritos al mismo topic, todos reciben el mensaje, lo que permite sumar dispositivos sin modificar al publicador.
 
-**Broker.** El broker acepta conexiones TCP de todos los clientes (sensores, actuadores, aplicaciones) y los identifica mediante un identificador de cliente (*Client ID*). Para cada cliente puede mantener una **sesión**, en la que guarda sus suscripciones y los mensajes pendientes de confirmación. La Figura 4.2 muestra un broker con varios clientes, cada uno asociado a sus topics. El intercambio de mensajes entre los clientes y el broker se detalla en la sección 4.3.
+**Broker.** El broker acepta conexiones TCP de todos los clientes (sensores, actuadores, aplicaciones) y los identifica mediante un identificador de cliente (*Client ID*). Para cada cliente puede mantener una **sesión**, en la que guarda sus suscripciones y los mensajes pendientes de confirmación. La Figura 4.2 muestra los clientes del broker en la casa propuesta: Home Assistant, Zigbee2MQTT (que representa a los dispositivos Zigbee) y los dispositivos Wi-Fi, cada uno asociado a sus topics. El intercambio de mensajes entre los clientes y el broker se detalla en la sección 4.3.
 
 ![Figura 4.2](Imagenes/img/fig4_2_broker_clientes.png)
 
-*Figura 4.2: Broker MQTT con varios clientes y sus topics. Fuente: [completar].*
+*Figura 4.2: Clientes del broker en la Smart Home propuesta y sus topics. Fuente: elaboración propia.*
 
 **Topics.** Un topic es una cadena de texto que identifica y organiza los mensajes que circulan por el broker. Se organiza de forma jerárquica con el carácter `/` como separador, como las carpetas de una computadora (Figura 4.3). Por ejemplo:
 
@@ -704,7 +709,7 @@ Por ejemplo, cuando un sensor publica una medición, el cliente MQTT arma el PUB
 
 IP ofrece un servicio de mejor esfuerzo: no garantiza que los datagramas lleguen ni que lo hagan en orden. Esa garantía la agrega TCP.
 
-**Capa de enlace.** Transmite la información entre dispositivos conectados al mismo enlace: encapsula los datagramas IP en tramas adecuadas para el medio, controla el acceso al medio y detecta errores. En la Smart Home intervienen Ethernet entre el router, el switch, el servidor y el AP; Wi-Fi entre los AP y los dispositivos; e IEEE 802.15.4 en la red Zigbee. Los switches y puntos de acceso trabajan en esta capa, con las direcciones MAC que se obtienen mediante ARP (sección 2.2).
+**Capa de enlace.** Transmite la información entre dispositivos conectados al mismo enlace: encapsula los datagramas IP en tramas adecuadas para el medio, controla el acceso al medio y detecta errores. En la Smart Home intervienen Ethernet entre el router, el servidor y el AP IoT; Wi-Fi entre los AP y los dispositivos Wi-Fi; e IEEE 802.15.4 en la red Zigbee. Los switches y puntos de acceso trabajan en esta capa, con las direcciones MAC que se obtienen mediante ARP (sección 2.2).
 
 **Capa física.** Representa y transmite los bits por el medio:
 
@@ -715,34 +720,48 @@ MQTT no necesita conocer estas características para funcionar.
 
 ## 5.2. Recorrido de una orden
 
-Con todo lo anterior se puede seguir el recorrido completo de una orden: el usuario toca "encender" en la aplicación del celular y se enciende la luz del living.
+Con todo lo anterior se puede seguir el recorrido completo de una orden: el usuario toca "encender" en la aplicación del celular y se enciende la lámpara del living. Primero se analiza el caso de un **dispositivo Wi-Fi** (un relé inteligente Shelly que controla la lámpara), porque permite seguir todas las capas del modelo TCP/IP hasta el destino. Después se describe la variante con una **lámpara Zigbee**.
 
-En la implementación propuesta, el celular usa la aplicación de **Home Assistant**, que se comunica con Home Assistant (en el Home Server) mediante **HTTPS/WebSocket**. Es Home Assistant el que traduce la orden a un mensaje **MQTT** y lo publica en el broker. Así, los dos protocolos comparados en la sección 4.2 conviven, cada uno donde mejor se adapta:
+En ambos casos, el celular usa la aplicación de **Home Assistant**, que se comunica con Home Assistant (en el Home Server) mediante **HTTPS/WebSocket**. Es Home Assistant el que traduce la orden a un mensaje **MQTT** y lo publica en el broker. Así, los dos protocolos comparados en la sección 4.2 conviven, cada uno donde mejor se adapta:
 
 - **HTTP**, entre el usuario y la plataforma;
 - **MQTT**, entre la plataforma y los dispositivos.
 
-El recorrido es el siguiente (Figuras 5.2 y 5.3):
+**Caso 1: dispositivo Wi-Fi** (Figuras 5.2 y 5.3)
 
-1. **Previo.** Al encenderse, el relé Shelly obtuvo su IP por DHCP del Home Server, abrió una conexión TCP y TLS con el broker (puerto 8883), envió CONNECT y se suscribió a `casa/living/luz/set`.
+1. **Previo.** Al encenderse, el relé obtuvo su IP por DHCP del Home Server, abrió una conexión TCP y TLS con el broker (puerto 8883), envió CONNECT y se suscribió a `casa/living/luz/set`.
 2. **En el celular.** La aplicación envía la orden a Home Assistant: la capa de aplicación arma la petición, TCP la segmenta, IP le pone como destino 192.168.1.10 y Wi-Fi la transmite al router.
-3. **Router y switch.** Como el celular y el servidor están en la misma subred, el router actúa solo como punto de acceso y switch: reenvía la trama por su MAC de destino, sin encaminarla en capa 3. El switch la entrega en el puerto del Home Server.
+3. **En el router.** Como el celular y el servidor están en la misma subred, el router actúa solo como punto de acceso y switch: reenvía la trama por su MAC de destino, por el puerto LAN donde está el Home Server, sin encaminarla en capa 3.
 4. **En el Home Server.** Home Assistant recibe la orden y publica `ON` en `casa/living/luz/set` con QoS 1. El broker, en el mismo equipo, consulta sus suscripciones.
 5. **Hacia la red IoT.** El broker reenvía el PUBLISH al relé. El paquete sale por la segunda interfaz del servidor (192.168.20.1); si no conoce la MAC del relé, la obtiene antes mediante ARP. El AP IoT transmite la trama por Wi-Fi.
-6. **En el relé.** El relé descifra el mensaje TLS, confirma con PUBACK, cierra el contacto y la luz se enciende.
+6. **En el relé.** El relé descifra el mensaje TLS, confirma con PUBACK, cierra su contacto y la lámpara se enciende.
 7. **Confirmación al usuario.** El relé publica su nuevo estado en `casa/living/luz/estado` (con *Retain*). El broker lo entrega a Home Assistant, que actualiza la aplicación del celular.
 
 ![Figura 5.2](Imagenes/img/fig5_2_camino_por_capas.png)
 
-*Figura 5.2: Capas que procesa cada equipo durante el envío de la orden. Fuente: elaboración propia.*
+*Figura 5.2: Capas que procesa cada equipo durante el envío de la orden a un dispositivo Wi-Fi. Fuente: elaboración propia.*
 
-Los equipos intermedios (router, switch y puntos de acceso) solo llegan hasta la capa de enlace: leen la dirección MAC y reenvían la trama. Solo los extremos y el Home Server suben hasta la capa de aplicación. Como todo ocurre dentro de la casa, **ningún router necesita encaminar la orden en capa 3**, y ningún paquete sale a Internet.
+Los equipos intermedios (el router y el punto de acceso IoT) solo llegan hasta la capa de enlace: leen la dirección MAC y reenvían la trama. Solo los extremos y el Home Server suben hasta la capa de aplicación. Como todo ocurre dentro de la casa, **ningún router necesita encaminar la orden en capa 3**, y ningún paquete sale a Internet.
 
 ![Figura 5.3](Imagenes/img/fig5_3_secuencia_orden.png)
 
-*Figura 5.3: Mensajes intercambiados desde que el usuario toca "encender" hasta que la aplicación muestra la luz encendida. Fuente: elaboración propia.*
+*Figura 5.3: Mensajes intercambiados con un dispositivo Wi-Fi, desde que el usuario toca "encender" hasta que la aplicación muestra la lámpara encendida. Fuente: elaboración propia.*
 
----
+**Caso 2: lámpara Zigbee** (Figura 5.4)
+
+Hasta el broker, el recorrido es el mismo: los pasos 2 a 4 no cambian. La diferencia está en el tramo final:
+
+1. Home Assistant publica `{"state":"ON"}` en `zigbee2mqtt/foco_living/set`.
+2. El broker entrega el mensaje a **Zigbee2MQTT**, que está suscrito a esos topics.
+3. Zigbee2MQTT traduce la orden a un comando Zigbee y la pasa por USB al **coordinador**.
+4. El coordinador la transmite por radio (IEEE 802.15.4), cifrada con AES-128. Si la lámpara está lejos, otro dispositivo de la malla la reenvía.
+5. La lámpara se enciende y confirma su nuevo estado. Zigbee2MQTT lo publica en `zigbee2mqtt/foco_living`, y Home Assistant actualiza la aplicación.
+
+En este caso, la pila TCP/IP termina en el Home Server: el último tramo usa la pila propia de Zigbee. El Home Server actúa como **pasarela** entre dos redes con protocolos distintos, que es exactamente la función que cumplen el *hub* de la marca o el asistente en un sistema comercial.
+
+![Figura 5.4](Imagenes/img/fig5_4_secuencia_zigbee.png)
+
+*Figura 5.4: Mensajes intercambiados con una lámpara Zigbee. Fuente: elaboración propia.*
 
 # 6. SEGURIDAD PERIMETRAL Y FILTRADO DE TRÁFICO
 
@@ -832,13 +851,15 @@ Si todos los dispositivos comparten una única red plana (el mismo rango de dire
 
 Para separarlas, cada puerto del switch se asigna a una VLAN, y lo mismo se hace con cada red Wi-Fi: se asocia cada SSID a una etiqueta 802.1Q. Para esto hacen falta un switch administrable y puntos de acceso que soporten etiquetas por SSID.
 
-**Segmentación implementada: red física separada.** En este trabajo se obtiene el mismo aislamiento sin VLAN, con una solución más simple y económica que deja el control en el Home Server:
+**Dispositivos Zigbee: aislados por naturaleza.** Los dispositivos Zigbee no tienen dirección IP ni están conectados a la red de la casa: solo pueden comunicarse con el coordinador del Home Server. Un dispositivo Zigbee vulnerable no puede usarse para explorar la LAN. Esta es otra razón para preferir Zigbee en lámparas y sensores.
+
+**Dispositivos Wi-Fi: red física separada.** Para los dispositivos Wi-Fi, en este trabajo se obtiene el mismo aislamiento que con una VLAN, con una solución más simple y económica que funciona con cualquier router y deja el control en el Home Server:
 
 - El servidor tiene **dos interfaces de red**. La primera está conectada a la red principal; la segunda, a un punto de acceso exclusivo para los dispositivos IoT.
-- La red IoT es, así, una red física aparte y un dominio de difusión distinto, igual que una VLAN.
+- La red IoT Wi-Fi es, así, una red física aparte y un dominio de difusión distinto, igual que una VLAN.
 - El servidor **no reenvía paquetes** entre sus interfaces: no actúa como router entre las dos redes. Un dispositivo IoT puede comunicarse con los servicios que corren en el servidor, pero no puede usarlo para llegar a otra red.
 
-Como resultado, la red IoT no tiene salida a Internet ni acceso a la red principal.
+Como resultado, la red IoT Wi-Fi no tiene salida a Internet ni acceso a la red principal.
 
 **Filtrado mediante firewall.** Sobre esa separación, el firewall del Home Server examina cada paquete que llega comparando sus campos de cabecera (interfaz de entrada, IP de origen y destino, puertos y protocolo de transporte) con una tabla de reglas (Figura 6.2 y Tabla 6.2).
 
@@ -885,21 +906,38 @@ NAT funciona de manera transparente para el tráfico que sale, pero es una barre
 
 **Método elegido.** Se usa una **VPN WireGuard ejecutada en el Home Server**. El router solo reenvía un puerto, el UDP 51820, hacia el servidor. WireGuard no responde a paquetes que no estén firmados con una clave conocida, por lo que ante un escaneo ese puerto parece cerrado. Si el proveedor usa CGNAT, se recurre a un túnel inverso; por ejemplo, Tailscale, que también se basa en WireGuard.
 
-Así, la combinación de una red IoT separada, con filtrado en el Home Server, y una VPN para el acceso desde la WAN permite controlar la casa tanto desde adentro como desde afuera sin comprometer su seguridad.
+Así, la combinación de dispositivos Zigbee sin IP, una red IoT Wi-Fi separada con filtrado en el Home Server y una VPN para el acceso desde la WAN permite controlar la casa tanto desde adentro como desde afuera sin comprometer su seguridad.
 
 ---
 
 # 7. IMPLEMENTACIÓN PRÁCTICA
 
-En esta sección se lleva la arquitectura analizada a equipos concretos. El criterio general fue **reemplazar los sistemas comerciales cerrados por un Home Server armado con una computadora propia y software libre**. Los equipos comerciales se limitan a lo que no se puede reemplazar: la infraestructura de red, los sensores y los actuadores.
+En esta sección se lleva la arquitectura analizada a equipos concretos. El criterio general es que el proyecto pueda **replicarse en cualquier vivienda**, con lo aprendido en Redes de Computadoras y comprando lo mínimo:
+
+- **se conserva el router existente** de la casa;
+- **el Home Server es una computadora reutilizada**, con software libre;
+- **los dispositivos son comerciales y estándar** (Zigbee), como los que cualquier persona compraría para usar con Alexa;
+- **lo único que se reemplaza es el sistema que los controla**: el asistente o la aplicación en la nube del fabricante.
+
+La implementación se organiza en etapas que funcionan por sí solas. Con las dos primeras ya se obtiene un sistema completo; las demás son extensiones.
+
+| Etapa | Qué agrega | Equipos |
+|---|---|---|
+| 1. Núcleo | El Home Server con el broker, Home Assistant y Zigbee2MQTT: el reemplazo del asistente | PC reutilizada, coordinador Zigbee USB |
+| 2. Dispositivos | Una lámpara y sensores comerciales, y las automatizaciones entre ellos | Foco Zigbee, sensor de movimiento, sensor de apertura |
+| 3. Dispositivos Wi-Fi (opcional) | Un dispositivo con IP que habla MQTT directamente con el broker | Relé Shelly; opcionalmente, un nodo ESP32 |
+| 4. Red IoT Wi-Fi (opcional) | Aislar los dispositivos Wi-Fi detrás del Home Server | Adaptador USB-Ethernet, router en desuso como AP |
+| 5. Acceso remoto | Control desde fuera de la casa | Ninguno: VPN WireGuard en el Home Server |
+
+*Tabla 7.1: Etapas de la implementación.*
 
 ## 7.1. Arquitectura física
 
 La Figura 7.1 muestra cómo se conectan los equipos:
 
-- El router queda a cargo solo de la salida a Internet y de la red de los usuarios.
-- El Home Server tiene dos interfaces de red. La primera está conectada al switch, junto con el resto de la casa. La segunda está conectada directamente a un punto de acceso exclusivo para los dispositivos IoT; así, la red IoT queda físicamente separada y su única salida es el Home Server.
-- El coordinador Zigbee se conecta por USB al Home Server y forma su propia red de malla con los sensores.
+- El Home Server se conecta por cable a un puerto LAN del router existente.
+- El coordinador Zigbee se conecta por USB al Home Server y forma una red de malla con la lámpara y los sensores.
+- Opcionalmente, una segunda interfaz de red del Home Server se conecta a un punto de acceso exclusivo para los dispositivos Wi-Fi.
 
 ![Figura 7.1](Imagenes/img/fig7_1_conexion_fisica.png)
 
@@ -908,173 +946,171 @@ La Figura 7.1 muestra cómo se conectan los equipos:
 | Desde | Hacia | Medio | Interfaz o puerto |
 |---|---|---|---|
 | Módem/ONT del proveedor | Router | Cable UTP | Puerto WAN del router |
-| Router | Switch | Cable UTP Cat 6 | LAN 1 → puerto 1 |
-| Switch | Home Server | Cable UTP Cat 6 | Ethernet integrada (interfaz 1) |
-| Home Server | AP IoT | Cable UTP | Adaptador USB-Ethernet (interfaz 2) → puerto LAN del AP |
-| Home Server | Coordinador Zigbee | USB, con cable alargador | Puerto USB 2.0 (el alargador aleja la antena de los puertos USB 3.0, que generan interferencia en 2,4 GHz) |
-| AP IoT | ESP32, Shelly | Wi-Fi 2,4 GHz | Red Wi-Fi (SSID) propia de los dispositivos IoT |
-| Coordinador | Sensores Zigbee | IEEE 802.15.4 (2,4 GHz) | Red de malla Zigbee |
-| Router | Celulares y notebooks | Wi-Fi 2,4 o 5 GHz | Red Wi-Fi de la casa |
+| Router | Home Server | Cable UTP Cat 6 | Puerto LAN del router → Ethernet integrada (interfaz 1) |
+| Router | Celulares y notebooks | Wi-Fi | Red Wi-Fi de la casa |
+| Home Server | Coordinador Zigbee | USB, con cable alargador | Puerto USB. El alargador aleja la antena de los puertos USB 3.0, que generan interferencia en 2,4 GHz |
+| Coordinador | Foco y sensores Zigbee | IEEE 802.15.4 (2,4 GHz) | Red de malla Zigbee |
+| Home Server (opcional) | AP IoT | Cable UTP | Adaptador USB-Ethernet (interfaz 2) → puerto LAN del AP |
+| AP IoT (opcional) | Relé Shelly | Wi-Fi 2,4 GHz | Red Wi-Fi propia de los dispositivos IoT |
 
-*Tabla 7.1: Interfaces y medios de conexión entre los equipos.*
+*Tabla 7.2: Interfaces y medios de conexión entre los equipos.*
 
 ## 7.2. Equipos seleccionados
 
-| Equipo | Marca y modelo | Características principales | Interfaces | Función en la Smart Home |
-|---|---|---|---|---|
-| Router | TP-Link Archer AX23 | Wi-Fi 6 de doble banda (574 Mbps en 2,4 GHz y 1201 Mbps en 5 GHz), WPA3, 4 antenas | 1 WAN y 4 LAN Gigabit; Wi-Fi 802.11 a/b/g/n/ac/ax | Salida a Internet (NAT), Wi-Fi y DHCP de la red principal; reenvía solo el puerto de la VPN |
-| Switch | TP-Link TL-SG108 | No administrable, capa 2, 16 Gbps de conmutación, tabla de 4000 direcciones MAC, sin ventilador | 8 puertos RJ-45 Gigabit | Conecta por cable al router, al Home Server y a otros equipos fijos |
-| Home Server | PC reutilizada o mini PC usada (por ejemplo, Lenovo ThinkCentre Tiny, Dell OptiPlex Micro o HP EliteDesk Mini) | CPU x86 de 64 bits, mínimo 4 GB de RAM (8 GB recomendado), disco SSD de 120 GB o más | Ethernet Gigabit; puertos USB 3.0 y 2.0 | Broker, automatizaciones, pasarela Zigbee, firewall, DHCP de la red IoT y VPN |
-| Segunda interfaz de red | TP-Link UE300 | Adaptador USB 3.0 a Gigabit Ethernet, reconocido por Linux sin instalar controladores | USB 3.0 / RJ-45 | Interfaz 2 del Home Server, hacia la red IoT |
-| Punto de acceso IoT | TP-Link TL-WA801N, o un router en desuso en modo punto de acceso | Wi-Fi N300 en 2,4 GHz | 1 puerto LAN; Wi-Fi 802.11 b/g/n | Red Wi-Fi exclusiva de los dispositivos IoT (los ESP32 y los Shelly solo usan 2,4 GHz) |
-| Coordinador Zigbee | Sonoff ZBDongle-E (o ZBDongle-P) | Zigbee 3.0, antena externa, compatible con Zigbee2MQTT | USB; radio IEEE 802.15.4 en 2,4 GHz | Conecta los sensores Zigbee con el Home Server |
-| Nodo IoT | Espressif ESP32-WROOM-32 DevKit V1 con sensor (DHT22 o BME280) | 2 núcleos a 240 MHz, 4 MB de memoria flash, 520 KB de SRAM | Wi-Fi 2,4 GHz, Bluetooth, GPIO, I2C, SPI, UART, ADC | Lee el sensor y publica sus mediciones por MQTT |
-| Relé inteligente | Shelly 1 Gen3 | Relé de 16 A, contacto seco, MQTT nativo, 110–240 V CA | Wi-Fi 2,4 GHz, Bluetooth, entrada para la llave de luz | Enciende y apaga la luz según las órdenes del broker |
-| Sensores Zigbee | Sonoff SNZB-02 (temperatura y humedad), SNZB-03 (movimiento), SNZB-04 (puerta) | A pila, bajo consumo | Zigbee 3.0 | Publican sus lecturas a través de Zigbee2MQTT |
+| Etapa | Equipo | Modelo | Características principales | Interfaces | Función |
+|---|---|---|---|---|---|
+| — | Router | El existente en la vivienda | Cualquier modelo con puertos LAN y Wi-Fi | WAN, LAN, Wi-Fi | Salida a Internet (NAT), Wi-Fi y DHCP de la red principal |
+| 1 | Home Server | PC reutilizada (o mini PC usada, como Lenovo ThinkCentre Tiny, Dell OptiPlex Micro o HP EliteDesk Mini) | CPU de 64 bits, 4 GB de RAM como mínimo (8 GB recomendado), disco SSD | Ethernet, USB | Broker, automatizaciones, pasarela Zigbee, VPN y firewall |
+| 1 | Coordinador Zigbee | Sonoff Zigbee 3.0 USB Dongle Plus (ZBDongle-E) | Chip Silicon Labs EFR32MG21, antena externa, compatible con Zigbee2MQTT | USB; radio IEEE 802.15.4 en 2,4 GHz | Crea la red Zigbee y conecta los dispositivos con el Home Server |
+| 2 | Foco inteligente | Philips Hue White Ambiance A60 E27 (929002468401) | Luz blanca de cálida a fría, regulable, rosca E27 | Zigbee 3.0 y Bluetooth | Actuador: la lámpara que se enciende y apaga |
+| 2 | Sensor de movimiento | Sonoff SNZB-03P | Sensor infrarrojo pasivo (PIR) con sensor de luminosidad, a pila | Zigbee 3.0 | Detecta presencia y dispara automatizaciones |
+| 2 | Sensor de apertura | Sonoff SNZB-04P | Contacto magnético para puertas y ventanas, a pila | Zigbee 3.0 | Avisa cuando se abre una puerta o ventana |
+| 3 (opcional) | Relé inteligente | Shelly 1 Mini Gen3 | Relé de hasta 8 A, de 29 × 34 × 16 mm, alimentado con 110–240 V (fase y neutro), MQTT nativo | Wi-Fi 2,4 GHz, Bluetooth, entrada para llave de luz | Actuador Wi-Fi que habla MQTT directamente con el broker. Se instala detrás de la llave de luz o dentro de la lámpara; la instalación la realiza un electricista |
+| 3 (opcional) | Nodo IoT | Espressif ESP32-WROOM-32 DevKit V1 | Microcontrolador con Wi-Fi, 2 núcleos a 240 MHz | Wi-Fi 2,4 GHz, Bluetooth, GPIO, I2C, SPI | Sensor a medida, para mediciones que no se venden ya armadas |
+| 4 (opcional) | Segunda interfaz de red | TP-Link UE300 | Adaptador USB 3.0 a Gigabit Ethernet, reconocido por Linux sin controladores adicionales | USB 3.0 / RJ-45 | Interfaz 2 del Home Server, hacia la red IoT Wi-Fi |
+| 4 (opcional) | Punto de acceso IoT | Router en desuso, en modo punto de acceso | Wi-Fi de 2,4 GHz | LAN, Wi-Fi | Red Wi-Fi exclusiva para los dispositivos IoT |
 
-*Tabla 7.2: Equipos seleccionados para la implementación.*
+*Tabla 7.3: Equipos seleccionados para la implementación.*
 
-[PENDIENTE: verificar los datos de cada equipo con su hoja de datos oficial y confirmar que el modelo de AP elegido tenga modo punto de acceso.]
+Los dispositivos Zigbee indicados son una referencia. Puede usarse cualquier lámpara o sensor Zigbee 3.0 que figure en la lista de dispositivos compatibles de Zigbee2MQTT, lo que permite elegir según el precio y la disponibilidad. Los dispositivos Zigbee que están siempre conectados a la red eléctrica, como el foco, además reenvían los mensajes de los sensores y extienden el alcance de la malla. Por eso el foco debe quedar con la llave de pared siempre encendida.
 
 **Fotografías de los equipos**
 
-[PENDIENTE: insertar una foto de cada equipo, de la página oficial del fabricante o propia, con el epígrafe correspondiente.]
+Las Figuras 7.2 a 7.7 muestran los equipos seleccionados.
 
-- *Figura 7.2: Router TP-Link Archer AX23. Fuente: sitio oficial de TP-Link.*
-- *Figura 7.3: Switch TP-Link TL-SG108. Fuente: sitio oficial de TP-Link.*
-- *Figura 7.4: Home Server. Fuente: [completar].*
-- *Figura 7.5: Adaptador TP-Link UE300. Fuente: sitio oficial de TP-Link.*
-- *Figura 7.6: Punto de acceso TP-Link TL-WA801N. Fuente: sitio oficial de TP-Link.*
-- *Figura 7.7: Coordinador Sonoff ZBDongle-E. Fuente: sitio oficial de Sonoff.*
-- *Figura 7.8: ESP32 DevKit. Fuente: sitio oficial de Espressif o elaboración propia.*
-- *Figura 7.9: Relé Shelly 1 Gen3. Fuente: sitio oficial de Shelly.*
-- *Figura 7.10: Sensores Sonoff SNZB. Fuente: sitio oficial de Sonoff.*
+<table>
+<tr>
+<td align="center"><img src="Imagenes/img/foto_zbdongle_e.jpg" width="230" alt="Sonoff ZBDongle-E"><br><em>Figura 7.2: Coordinador Zigbee Sonoff ZBDongle-E. Fuente: Sonoff.</em></td>
+<td align="center"><img src="Imagenes/img/foto_hue_white_ambiance.jpg" width="230" alt="Philips Hue White Ambiance A60 E27"><br><em>Figura 7.3: Foco Philips Hue White Ambiance A60 E27. Fuente: Philips Argentina.</em></td>
+</tr>
+<tr>
+<td align="center"><img src="Imagenes/img/foto_snzb_03p.jpg" width="230" alt="Sonoff SNZB-03P"><br><em>Figura 7.4: Sensor de movimiento Sonoff SNZB-03P. Fuente: Sonoff.</em></td>
+<td align="center"><img src="Imagenes/img/foto_snzb_04p.jpg" width="230" alt="Sonoff SNZB-04P"><br><em>Figura 7.5: Sensor de apertura Sonoff SNZB-04P. Fuente: Sonoff Argentina.</em></td>
+</tr>
+<tr>
+<td align="center"><img src="Imagenes/img/foto_shelly_1_mini_gen3.jpg" width="230" alt="Shelly 1 Mini Gen3"><br><em>Figura 7.6: Relé Shelly 1 Mini Gen3 (opcional). Fuente: Shelly.</em></td>
+<td align="center"><img src="Imagenes/img/foto_tplink_ue300.jpg" width="230" alt="TP-Link UE300"><br><em>Figura 7.7: Adaptador USB-Ethernet TP-Link UE300 (opcional). Fuente: TP-Link.</em></td>
+</tr>
+</table>
 
 ## 7.3. Software del Home Server
 
 Todo el software del Home Server es libre y gratuito. Su organización se mostró en la Figura 3.1.
 
-| Software | Qué hace en el sistema |
-|---|---|
-| Debian 13 | Sistema operativo del servidor |
-| OpenMediaVault 8 | Panel web de administración: discos, red, usuarios, copias de seguridad y contenedores |
-| Docker | Ejecuta cada servicio aislado en su propio contenedor |
-| Eclipse Mosquitto | Broker MQTT |
-| Home Assistant | Automatizaciones, panel de control y aplicación para el celular |
-| Zigbee2MQTT | Traduce los mensajes Zigbee a MQTT |
-| WireGuard | VPN para el acceso desde fuera de la casa |
-| nftables | Firewall del servidor |
-| dnsmasq | DHCP y DNS de la red IoT |
-| chrony | Hora (NTP) para la red IoT |
+| Software | Qué hace en el sistema | Etapa |
+|---|---|---|
+| Debian 13 | Sistema operativo del servidor | 1 |
+| OpenMediaVault 8 | Panel web de administración: discos, red, usuarios, copias de seguridad y contenedores | 1 |
+| Docker | Ejecuta cada servicio aislado en su propio contenedor | 1 |
+| Eclipse Mosquitto | Broker MQTT | 1 |
+| Home Assistant | Automatizaciones, panel de control, aplicación para el celular y asistente de voz | 1 |
+| Zigbee2MQTT | Traduce los mensajes Zigbee a MQTT | 1 |
+| ESPHome | Firmware del nodo ESP32 | 3 (opcional) |
+| dnsmasq y chrony | DHCP, DNS y hora de la red IoT Wi-Fi | 4 (opcional) |
+| nftables | Firewall del servidor | 1 y 4 |
+| WireGuard | VPN para el acceso desde fuera de la casa | 5 |
 
-*Tabla 7.3: Software utilizado en el Home Server.*
+*Tabla 7.4: Software utilizado en el Home Server.*
 
 **Debian y OpenMediaVault.** **Debian** es una distribución de Linux orientada a servidores, conocida por su estabilidad. Sobre ella se instala **OpenMediaVault** (OMV), un sistema para armar un servidor de almacenamiento en red. OMV agrega una interfaz web que permite administrar el equipo desde el navegador, sin usar la terminal:
 
 - los discos y las copias de seguridad;
 - los usuarios;
-- la configuración de las dos interfaces de red;
+- la configuración de las interfaces de red;
 - las actualizaciones y el estado del hardware.
 
-Con el complemento *Compose* del repositorio *omv-extras*, también se administran desde ahí los contenedores. OMV es el reemplazo directo del hub o la aplicación del fabricante, y además permite que el mismo equipo funcione como almacenamiento de la casa.
+Con el complemento *Compose* del repositorio *omv-extras*, también se administran desde ahí los contenedores. OMV permite, además, que el mismo equipo funcione como almacenamiento de la casa.
 
-**Contenedores.** Cada servicio corre en un contenedor **Docker**: un entorno aislado que incluye el programa con todo lo que necesita. Así, los servicios no interfieren entre sí y cada uno puede actualizarse o reemplazarse sin afectar a los demás.
+**Contenedores.** Cada servicio corre en un contenedor **Docker**: un entorno aislado que incluye el programa con todo lo que necesita. Así, los servicios no interfieren entre sí y cada uno puede actualizarse o reemplazarse sin afectar a los demás. Al contenedor de Zigbee2MQTT se le da acceso al puerto USB del coordinador.
 
 **Broker: Eclipse Mosquitto.** Es el broker MQTT de código abierto más utilizado. Se configura con:
 
 - TLS en el puerto 8883, con un certificado emitido por una autoridad de certificación propia;
-- un usuario y una contraseña por dispositivo;
+- un usuario y una contraseña por cliente;
 - un archivo de ACL (sección 6.2).
 
-El puerto 1883, sin cifrado, queda deshabilitado o limitado al propio servidor.
+El puerto 1883, sin cifrado, queda limitado al propio servidor.
 
-**Automatizaciones: Home Assistant.** Es la plataforma de domótica de código abierto más difundida. Para el broker, es un cliente MQTT más:
+**Pasarela Zigbee: Zigbee2MQTT.** Traduce entre Zigbee y MQTT usando el coordinador USB. Para sumar un dispositivo nuevo se habilita la vinculación desde su panel web y se pone el dispositivo en modo de vinculación; Zigbee2MQTT lo identifica y le asigna un nombre. A partir de ahí:
 
-- se suscribe a los topics de estado y publica órdenes cuando se cumple una regla, por ejemplo "si se detecta movimiento y es de noche, encender la luz del pasillo";
+- publica el estado de cada dispositivo como JSON, por ejemplo `{"occupancy": true}` en `zigbee2mqtt/sensor_pasillo`;
+- recibe las órdenes en `zigbee2mqtt/<nombre>/set`, por ejemplo `{"state": "ON"}` para la lámpara;
+- publica también la descripción de cada dispositivo en topics que empiezan con `homeassistant/`, para que Home Assistant cree sus entidades de forma automática.
+
+Para el resto del sistema, un dispositivo Zigbee es un cliente MQTT más. Es el rol de pasarela que la sección 3.1 asigna al Home Server.
+
+**Automatizaciones: Home Assistant.** Es la plataforma de domótica de código abierto más difundida y el reemplazo directo del asistente comercial. Para el broker, es un cliente más:
+
+- se suscribe a los topics de estado y publica órdenes cuando se cumple una regla, por ejemplo: "si el sensor del pasillo detecta movimiento y es de noche, encender la lámpara durante dos minutos";
 - ofrece el panel y la aplicación del celular, que se comunican con él por HTTPS en el puerto 8123 (sección 5.2);
-- guarda el historial de los sensores.
+- incluye el asistente **Assist**, que permite dar órdenes por voz desde la aplicación, como con Alexa;
+- guarda el historial de los dispositivos.
 
-Se instala en su versión ***Container***, que corre en Docker. Desde 2025, Home Assistant solo da soporte a dos formas de instalación (Home Assistant, 2025):
+Se instala en su versión ***Container***, que corre en Docker. Desde 2025, Home Assistant solo da soporte a dos formas de instalación: *Home Assistant OS*, que ocupa toda la máquina, y *Container*, que permite compartir el servidor con OMV (Home Assistant, 2025). Por eso, el broker y la pasarela Zigbee corren en contenedores propios.
 
-- *Home Assistant OS*, que ocupa toda la máquina;
-- *Container*, que permite compartir el servidor con OMV.
+**Dispositivos Wi-Fi (opcional).** El relé Shelly trae MQTT en su firmware: desde su página web se activa la opción MQTT y se indican la dirección del broker y las credenciales. Para un sensor a medida, el ESP32 se programa con **ESPHome**: el dispositivo se describe en un archivo de texto (qué sensor, en qué pin y a qué broker se conecta) y ESPHome genera el firmware.
 
-Por eso, el broker y la pasarela Zigbee corren en contenedores propios.
-
-**Pasarela Zigbee: Zigbee2MQTT.** Traduce entre Zigbee y MQTT usando el coordinador USB:
-
-- cuando un sensor envía una lectura, la publica como un mensaje JSON en un topic, por ejemplo `zigbee2mqtt/sensor_cocina` con `{"temperature": 22.5}`;
-- para enviar una orden a un dispositivo Zigbee, se publica en `zigbee2mqtt/<nombre>/set`.
-
-Para el resto del sistema, un sensor Zigbee se ve igual que un ESP32 con Wi-Fi. Es el rol de traductor que la sección 3.1 asigna al Home Server.
-
-**VPN: WireGuard.** Es un protocolo de VPN moderno, incluido en el núcleo de Linux:
-
-- cada equipo (el servidor y cada celular) tiene un par de claves, pública y privada, y conoce la clave pública del otro;
-- el celular establece un túnel cifrado sobre UDP hacia el puerto 51820;
-- una vez conectado, usa la aplicación de Home Assistant como si estuviera en el Wi-Fi de la casa.
-
-**Servicios de red: nftables, dnsmasq y chrony.**
+**Servicios de red.**
 
 - **nftables** es el firewall de Linux, con inspección de estado. Aplica las reglas de la Tabla 6.2.
-- **dnsmasq** escucha solo en la interfaz de la red IoT. Asigna las direcciones por DHCP, con reservas por MAC, y resuelve nombres como `broker.casa`.
-- **chrony** toma la hora de Internet por la red principal y la ofrece a la red IoT. Es necesario porque TLS requiere que los dispositivos tengan la hora correcta para verificar que el certificado del broker esté vigente, y la red IoT no tiene acceso a servidores de hora públicos.
+- **dnsmasq** (solo si se usa la red IoT Wi-Fi) asigna las direcciones por DHCP en la segunda interfaz, con reservas por MAC, y resuelve nombres como `broker.casa`.
+- **chrony** (ídem) ofrece la hora a la red IoT Wi-Fi, que no tiene acceso a Internet. TLS la necesita para verificar que el certificado del broker esté vigente.
 
-**Firmware del ESP32.** El ESP32 necesita un programa que lea el sensor y se comunique por MQTT. Puede ser un programa propio, escrito en el entorno Arduino con las bibliotecas *PubSubClient* (cliente MQTT) y *WiFiClientSecure* (TLS), o un firmware ya preparado, como ESPHome o Tasmota, que traen MQTT incorporado. [PENDIENTE: indicar cuál se elige.]
+**VPN: WireGuard.** Cada equipo (el servidor y cada celular) tiene un par de claves, pública y privada. El celular establece un túnel cifrado sobre UDP hacia el puerto 51820 y, una vez conectado, usa la aplicación de Home Assistant como si estuviera en la casa. Si el proveedor usa CGNAT, se reemplaza por Tailscale, que también se basa en WireGuard.
 
 ## 7.4. Presupuesto estimado
 
-Precios en pesos argentinos, consultados el [PENDIENTE: fecha de consulta].
+El presupuesto se organiza según las etapas de la Tabla 7.1. Como se conservan el router y una computadora existentes, la inversión del sistema básico (etapas 1 y 2) se limita al coordinador Zigbee y a los dispositivos. Precios en pesos argentinos, consultados el 9 de noviembre de 2026 en tiendas que venden en el país (los enlaces están en el Anexo D).
 
-| Equipo | Modelo | Cant. | Precio unitario | Tienda |
-|---|---|---|---|---|
-| Router | TP-Link Archer AX23 | 1 | $126.778 | Computer Shopping |
-| Switch | TP-Link TL-SG108 | 1 | $50.813 | Cignal |
-| Home Server | PC reutilizada | 1 | $0 | — |
-| Adaptador USB-Ethernet | TP-Link UE300 | 1 | [a cotizar] | [completar] |
-| Punto de acceso IoT | TP-Link TL-WA801N | 1 | [a cotizar] ($0 si se reutiliza un router) | [completar] |
-| Coordinador Zigbee | Sonoff ZBDongle-E | 1 | [a cotizar] | [completar] |
-| Nodo IoT | ESP32-WROOM-32 DevKit V1 | 1 | $18.559 | Starware |
-| Sensor para el ESP32 | DHT22 o BME280 | 1 | [a cotizar] | [completar] |
-| Relé inteligente | Shelly 1 Gen3 | 1 | $20.470 | [completar tienda] |
-| Sensores Zigbee | Sonoff SNZB-02, SNZB-03 y SNZB-04 | 1 c/u | [a cotizar] | [completar] |
-| Cables UTP y alargador USB | — | — | [a cotizar] | [completar] |
-| **Total** | | | **$216.620 + ítems a cotizar** | |
+| Etapa | Equipo | Modelo | Cant. | Precio unitario | Tienda |
+|---|---|---|---|---|---|
+| — | Router | Router existente de la vivienda | 1 | \$0 | — |
+| 1 | Home Server | PC reutilizada | 1 | \$0 | — |
+| 1 | Coordinador Zigbee | Sonoff ZBDongle-E | 1 | \$79.900 | HomIQ |
+| 1 | Alargue USB | Cable alargue USB 2.0 macho-hembra, 1 m | 1 | \$3.992 | Velko |
+| 1 | Cable de red | Patch cord UTP Cat 6, 2 m (Reguvolt) | 1 | \$2.657 | Córdoba Electrónica |
+| 2 | Foco inteligente | Philips Hue White Ambiance A60 E27 | 1 | \$47.990 | Tienda oficial Philips |
+| 2 | Sensor de movimiento | Sonoff SNZB-03P | 1 | \$39.990 | HomIQ |
+| 2 | Sensor de apertura | Sonoff SNZB-04P | 1 | \$35.990 | HomIQ |
+| | **Subtotal: sistema básico (etapas 1 y 2)** | | | **\$210.519** | |
+| 3 (opcional) | Relé inteligente | Shelly 1 Mini Gen3 | 1 | \$52.999 | L2B |
+| 3 (opcional) | Nodo IoT | ESP32-WROOM-32 DevKit V1 | 1 | \$18.559 | Starware |
+| 4 (opcional) | Adaptador USB-Ethernet | TP-Link UE300 | 1 | \$28.079 | Venex |
+| 4 (opcional) | Punto de acceso IoT | Router en desuso | 1 | \$0 | — |
+| 5 | VPN | WireGuard (software libre) | — | \$0 | — |
+| | **Total con opcionales** | | | **\$310.156** | |
 
-*Tabla 7.4: Presupuesto estimado.*
+*Tabla 7.5: Presupuesto estimado.*
 
-Reutilizar una computadora como Home Server es el mayor ahorro del proyecto: una Raspberry Pi 5 de 8 GB, la alternativa considerada inicialmente, costaba $416.212.
+Los precios corresponden al precio de lista de cada tienda. Algunas ofrecen descuentos por transferencia (por ejemplo, el adaptador TP-Link UE300 baja a \$25.999 en Venex). Al momento de la consulta, el coordinador Zigbee y el adaptador USB-Ethernet figuraban sin stock en esas tiendas, por lo que su precio se toma como referencia; ambos se consiguen también en otros comercios y en Mercado Libre. La instalación del relé Shelly (opcional) requiere un electricista, cuyo costo no está incluido. Los dispositivos Zigbee, en cambio, no requieren instalación: el foco se enrosca y los sensores se pegan o se apoyan.
+
+Reutilizar una computadora como Home Server y el router existente es el mayor ahorro del proyecto. Una Raspberry Pi 5 de 8 GB, la alternativa considerada inicialmente para el servidor, costaba \$416.212, y un router nuevo como el TP-Link Archer AX23, \$126.778.
 
 ## 7.5. Justificación de la solución
 
-Al elegir los equipos no se buscaron los más potentes, sino los que alcanzan para esta Smart Home con la mejor relación entre costo y prestaciones. Los criterios fueron cuatro:
+Al elegir los equipos no se buscaron los más potentes, sino los que permiten replicar el proyecto en cualquier vivienda con la mejor relación entre costo y prestaciones. Los criterios fueron cuatro:
 
 - que todo funcione dentro de la red local, sin depender de la nube;
-- que los equipos sean compatibles con MQTT;
-- que tengan bajo costo y consumo;
-- que sean fáciles de conseguir y configurar.
+- que los dispositivos sean estándar y compatibles con MQTT, directamente o a través de una pasarela;
+- que se aproveche lo que ya existe en la casa;
+- que los equipos sean fáciles de conseguir y configurar.
 
-**Home Server (PC reutilizada con Debian y OpenMediaVault).** Es la decisión central del proyecto. En lugar de comprar un hub comercial, que depende de la nube del fabricante, se reutiliza una computadora que ya no se usa, porque para el broker y las automatizaciones alcanza con un equipo modesto. Frente a una Raspberry Pi, una PC tiene varias ventajas:
+**Router existente.** Como la lógica y la seguridad están en el Home Server, al router solo se le pide lo básico: un puerto LAN libre, Wi-Fi y, para el acceso remoto, la posibilidad de reenviar un puerto. Cualquier router doméstico, incluido el que entrega el proveedor, cumple estos requisitos.
 
-- trae disco SSD (la tarjeta microSD se desgasta con escrituras continuas);
-- admite una segunda placa de red;
-- puede servir también como almacenamiento de la casa para copias de seguridad.
+**Home Server (PC reutilizada con Debian y OpenMediaVault).** En lugar de depender de un asistente o de un *hub* comercial, que se apoyan en la nube del fabricante, se reutiliza una computadora que ya no se usa: para el broker y las automatizaciones alcanza con un equipo modesto. Frente a una Raspberry Pi, una PC trae disco SSD (la tarjeta microSD se desgasta con escrituras continuas), admite una segunda placa de red y puede servir también como almacenamiento de la casa. Como contrapartida, consume más energía.
 
-Como contrapartida, consume más energía. Si no hay una computadora disponible, una mini PC usada es la alternativa más económica.
+**Dispositivos Zigbee.** Es la decisión central del proyecto. Las lámparas y sensores Wi-Fi más baratos suelen depender de la nube de su fabricante y son difíciles de controlar en forma local. Los dispositivos Zigbee, en cambio:
 
-**Router (TP-Link Archer AX23).** Como la lógica y la seguridad se trasladan al Home Server, el router solo necesita buena cobertura Wi-Fi y salida a Internet. Alcanza un equipo de gama media; incluso podría usarse el que entrega el proveedor.
+- funcionan con cualquier coordinador compatible, sin la nube de su marca;
+- son estándar y se fabrican en muchas marcas y para muchos usos (lámparas, enchufes, llaves de luz y sensores de movimiento, apertura, temperatura, humo o agua);
+- consumen muy poca energía, por lo que los sensores funcionan durante meses o años a pila;
+- no tienen dirección IP, por lo que quedan aislados de la red de la casa (sección 6.3).
 
-**Switch (TP-Link TL-SG108).** Un switch simple, sin configuración, es suficiente porque la separación de la red IoT no depende de VLAN, sino de la segunda interfaz del Home Server. Si en el futuro se quisiera segmentar con VLAN, habría que reemplazarlo por la versión administrable (TL-SG108E).
+**Coordinador Sonoff ZBDongle-E.** Es uno de los coordinadores USB más difundidos y está soportado por Zigbee2MQTT. Es la única compra obligatoria de la etapa 1: cumple el papel del *hub* que traen los sistemas comerciales.
 
-**Punto de acceso IoT.** Crea una red Wi-Fi exclusiva para los dispositivos IoT, conectada solo al Home Server. Es la forma más económica de aislarlos, y puede reutilizarse un router en desuso configurado como punto de acceso.
+**Relé Shelly 1 Mini Gen3 (opcional).** Se elige porque trae MQTT en su firmware, de modo que se conecta directamente al broker local sin modificaciones, y porque se consigue en el país. Se descartó el enchufe Shelly Plug S Gen3, que no tiene distribución local y usa ficha europea. Permite mostrar un dispositivo con dirección IP y el recorrido completo por las capas del modelo TCP/IP (sección 5.2).
 
-**Nodo IoT (ESP32).** Trae Wi-Fi integrado y varias interfaces para sensores, a un costo muy bajo. Usar una computadora para leer un sensor sería un gasto innecesario, y una placa Arduino común no trae Wi-Fi.
-
-**Relé (Shelly 1 Gen3).** Soporta MQTT de forma nativa, por lo que se conecta directamente al broker local. Otras marcas dependen de su propia aplicación en la nube, salvo que se reemplace su firmware, lo que va en contra del objetivo de que todo funcione localmente.
-
-**Coordinador y sensores Zigbee.** Zigbee consume mucha menos energía que Wi-Fi, por lo que es la opción adecuada para sensores a pila. Además, al formar una malla, cada dispositivo Zigbee conectado a la red eléctrica extiende el alcance de la red.
-
----
+**Implementación por etapas.** Con las etapas 1 y 2 ya se obtiene un sistema funcional: una lámpara comercial que se enciende sola cuando un sensor detecta movimiento, sin asistente en la nube y sin depender de Internet. Las etapas siguientes agregan dispositivos Wi-Fi, el aislamiento de la red IoT Wi-Fi y el acceso remoto.
 
 # 8. CONCLUSIONES
 
@@ -1105,18 +1141,18 @@ El análisis por capas mostró cómo se reparten las responsabilidades:
 - MQTT define los mensajes;
 - TCP garantiza la entrega confiable y ordenada de los bytes;
 - IP se encarga del direccionamiento y el encaminamiento;
-- Ethernet, Wi-Fi y 802.15.4 transportan las tramas en cada enlace.
+- Ethernet, Wi-Fi e IEEE 802.15.4 transportan las tramas en cada enlace.
 
-En el recorrido de una orden, la aplicación del celular envía la orden a Home Assistant, que la publica en el broker; el broker la reenvía al relé suscrito, y el relé enciende la luz y publica su nuevo estado. Los equipos intermedios solo actúan en la capa de enlace, y ningún paquete sale de la casa.
+En el recorrido de una orden, la aplicación del celular envía la orden a Home Assistant, que la publica en el broker; el broker la reenvía al dispositivo suscrito (directamente, si es Wi-Fi, o a través de Zigbee2MQTT y el coordinador, si es Zigbee), y el dispositivo enciende la lámpara y publica su nuevo estado. Los equipos intermedios solo actúan en la capa de enlace, y ningún paquete sale de la casa.
 
 El trabajo también mostró que la seguridad no puede depender de un único mecanismo. MQTT, por sí solo, transmite en texto plano, por lo que el diseño propuesto combina varias capas de defensa:
 
 - TLS para cifrar la comunicación, verificar su integridad y autenticar al broker;
 - credenciales individuales y ACL en el broker, según el principio de mínimo privilegio;
-- una red separada para los dispositivos IoT, a la que solo accede el Home Server, con su propio firewall;
+- dispositivos Zigbee, que no tienen dirección IP, y una red separada para los dispositivos Wi-Fi, a la que solo accede el Home Server, con su propio firewall;
 - acceso remoto mediante una VPN, en lugar de exponer puertos a Internet.
 
-En la implementación, el sistema se arma reutilizando una computadora con Debian y OpenMediaVault, con software libre y sin depender de servicios en la nube. Los equipos comerciales se limitan a la red, los sensores y los actuadores.
+En la implementación, el proyecto puede replicarse en cualquier vivienda: se conservan el router existente y dispositivos comerciales estándar, como los que se usan con Alexa, y se reemplaza solo el sistema que los controla por un Home Server armado con una computadora reutilizada, Debian, OpenMediaVault y software libre. Con un coordinador Zigbee, una lámpara y un par de sensores ya se obtiene un sistema completo que funciona sin la nube del fabricante.
 
 La principal limitación de esta arquitectura es que el Home Server se convierte en un **punto único de falla**: si deja de funcionar, la casa inteligente deja de responder. El diseño acota el impacto, porque el router conserva la red y la salida a Internet de la casa aunque el servidor falle. Una fuente de alimentación ininterrumpida (UPS), las copias de seguridad automáticas y, como extensión de este trabajo, la redundancia del broker permitirían reducir este riesgo.
 
@@ -1133,18 +1169,24 @@ En síntesis, una Smart Home basada en un Home Server con broker MQTT local es u
 - Fielding, R. T. (2000). *Architectural Styles and the Design of Network-based Software Architectures* [Tesis doctoral]. University of California, Irvine. https://ics.uci.edu/~fielding/pubs/dissertation/top.htm
 - Fielding, R., Nottingham, M. y Reschke, J. (Eds.). (2022). *HTTP Semantics* (RFC 9110). IETF. https://www.rfc-editor.org/info/rfc9110
 - Fielding, R., Nottingham, M. y Reschke, J. (Eds.). (2022). *HTTP/1.1* (RFC 9112). IETF. https://www.rfc-editor.org/info/rfc9112
-- Home Assistant. (s.f.). *Documentación de Home Assistant*. https://www.home-assistant.io/docs/ [PENDIENTE: fecha de consulta]
+- Home Assistant. (s.f.). *Documentación de Home Assistant*. Recuperado el 9 de noviembre de 2026 de https://www.home-assistant.io/docs/
 - Home Assistant. (2025, 22 de mayo). *Deprecating Core and Supervised installation methods, and 32-bit systems*. https://www.home-assistant.io/blog/2025/05/22/deprecating-core-and-supervised-installation-methods-and-32-bit-systems/
 - IEEE. (2020). *IEEE Standard for Low-Rate Wireless Networks* (IEEE Std 802.15.4-2020).
 - Kurose, J. F. y Ross, K. W. (2017). *Redes de computadoras: un enfoque descendente* (7.ª ed.). Pearson.
 - Montenegro, G., Kushalnagar, N., Hui, J. y Culler, D. (2007). *Transmission of IPv6 Packets over IEEE 802.15.4 Networks* (RFC 4944). IETF. https://www.rfc-editor.org/info/rfc4944
 - OASIS. (2019). *MQTT Version 5.0* (A. Banks, E. Briggs, K. Borgendale y R. Gupta, Eds.). OASIS Standard. https://www.oasis-open.org/standard/mqtt-v5-0-os/
-- Ramos, F. (s.f.). *Self-hosted home* [Entrada de blog]. https://blog.fidelramos.net/es/software/self-hosted-home-1 [PENDIENTE: completar el título exacto y la fecha]
+- Ramos, F. (s.f.). [Entrada de blog sobre servicios autoalojados en el hogar]. https://blog.fidelramos.net/es/software/self-hosted-home-1
 - Rekhter, Y., Moskowitz, B., Karrenberg, D., de Groot, G. J. y Lear, E. (1996). *Address Allocation for Private Internets* (RFC 1918). IETF. https://www.rfc-editor.org/info/rfc1918
 - Rescorla, E. (2018). *The Transport Layer Security (TLS) Protocol Version 1.3* (RFC 8446). IETF. https://www.rfc-editor.org/info/rfc8446
 - Stallings, W. (2004). *Comunicaciones y redes de computadores* (7.ª ed.). Pearson Educación.
-- Documentación oficial de Debian, OpenMediaVault, Eclipse Mosquitto, Zigbee2MQTT y WireGuard. [PENDIENTE: agregar cada una con su URL y fecha de consulta]
-- Hojas de datos de TP-Link (Archer AX23, TL-SG108, UE300, TL-WA801N), Espressif (ESP32-WROOM-32), Shelly (1 Gen3) y Sonoff (ZBDongle-E, SNZB-02/03/04). [PENDIENTE: agregar cada una con su URL y fecha de consulta]
+- Debian. (s.f.). *Documentación de Debian*. Recuperado el 9 de noviembre de 2026 de https://www.debian.org/doc/
+- Eclipse Foundation. (s.f.). *Eclipse Mosquitto: documentación*. Recuperado el 9 de noviembre de 2026 de https://mosquitto.org/documentation/
+- OpenMediaVault. (s.f.). *Documentación de OpenMediaVault*. Recuperado el 9 de noviembre de 2026 de https://docs.openmediavault.org/
+- Philips Hue. (s.f.). *Hue White Ambiance A60 E27* [Hoja de producto]. Recuperado el 9 de noviembre de 2026 de https://www.philips-hue.com/
+- Shelly. (s.f.). *Shelly 1 Mini Gen3* [Documentación del producto]. Recuperado el 9 de noviembre de 2026 de https://www.shelly.com/blogs/documentation/shelly-1-mini-gen3
+- Sonoff. (s.f.). *Zigbee 3.0 USB Dongle Plus (ZBDongle-E), SNZB-03P y SNZB-04P* [Hojas de producto]. Recuperado el 9 de noviembre de 2026 de https://sonoff.tech/
+- WireGuard. (s.f.). *WireGuard: fast, modern, secure VPN tunnel*. Recuperado el 9 de noviembre de 2026 de https://www.wireguard.com/
+- Zigbee2MQTT. (s.f.). *Documentación y lista de dispositivos compatibles*. Recuperado el 9 de noviembre de 2026 de https://www.zigbee2mqtt.io/
 
 ---
 
@@ -1216,7 +1258,7 @@ casa/
 │   ├── temperatura        (sensor publica, QoS 0)
 │   └── luz/
 │       ├── set            (Home Assistant publica la orden, QoS 1)
-│       └── estado         (el relé publica su estado, QoS 1, retain)
+│       └── estado         (el dispositivo publica su estado, QoS 1, retain)
 ├── living/
 │   ├── luz/set
 │   ├── luz/estado
@@ -1227,13 +1269,18 @@ casa/
 │       └── estado
 └── seguridad/
     └── alarma
-zigbee2mqtt/<dispositivo>      (publicado por Zigbee2MQTT)
+zigbee2mqtt/
+├── foco_living            (estado de la lámpara, publicado por Zigbee2MQTT)
+├── foco_living/set        (Home Assistant publica la orden: {"state":"ON"})
+├── sensor_pasillo         (movimiento: {"occupancy":true}, QoS 1)
+└── sensor_puerta          (apertura: {"contact":false}, QoS 1)
+homeassistant/...          (descripción de los dispositivos para el descubrimiento automático)
 ```
 
 **B.3. Archivo de ACL de Mosquitto**
 
 ```
-# Relé de la luz del living: recibe órdenes y publica su estado
+# Relé Shelly del living: recibe órdenes y publica su estado
 user rele_living
 topic read  casa/living/luz/set
 topic write casa/living/luz/estado
@@ -1242,10 +1289,16 @@ topic write casa/living/luz/estado
 user sensor_temp_cocina
 topic write casa/cocina/temperatura
 
+# Zigbee2MQTT: representa a los dispositivos Zigbee
+user zigbee2mqtt
+topic readwrite zigbee2mqtt/#
+topic write homeassistant/#
+
 # Home Assistant: coordina toda la casa
 user homeassistant
 topic readwrite casa/#
 topic readwrite zigbee2mqtt/#
+topic read homeassistant/#
 ```
 
 ---
@@ -1278,3 +1331,22 @@ topic readwrite zigbee2mqtt/#
 | VLAN | *Virtual LAN* | Red lógica separada dentro de un mismo switch |
 | VPN | *Virtual Private Network* | Túnel cifrado para acceder a la red desde afuera |
 | WPAN | *Wireless Personal Area Network* | Red inalámbrica de corto alcance (por ejemplo, Zigbee) |
+| Zigbee | — | Estándar inalámbrico de bajo consumo sobre IEEE 802.15.4, sin IP, con topología de malla |
+
+---
+
+# ANEXO D — Fuentes de los precios
+
+Precios consultados el 9 de noviembre de 2026.
+
+| Equipo | Tienda | Enlace | Observaciones |
+|---|---|---|---|
+| Sonoff ZBDongle-E | HomIQ | https://tienda.homiq.com.ar/productos/sonoff-zigbee-dongle-e-usb/ | Sin stock al momento de la consulta |
+| Cable alargue USB 2.0, 1 m | Velko | https://velko.com.ar/productos/cable-alargue-1m-usb | 5 % de descuento por transferencia |
+| Patch cord UTP Cat 6, 2 m | Córdoba Electrónica | https://tienda.cordobaelectronica.com.ar/productos/patch-cord-utp-cat-6-elegir-longitud-reguvolt-rv-pcord6/ | — |
+| Philips Hue White Ambiance A60 E27 | Tienda oficial Philips Argentina | https://www.tienda.philips.com.ar/929002468401/p | Precio de oferta (lista: \$56.990) |
+| Sonoff SNZB-03P | HomIQ | https://tienda.homiq.com.ar/productos/snzb-03p-zigbee/ | También en Sonoff Argentina a \$40.000 |
+| Sonoff SNZB-04P | HomIQ | https://tienda.homiq.com.ar/productos/snzb-04p-zigbee/ | También en Sonoff Argentina a \$36.500 |
+| Shelly 1 Mini Gen3 | L2B | https://tienda.l2b.com.ar/ | — |
+| TP-Link UE300 | Venex | https://www.venex.com.ar/componentes-de-pc/placas-de-red/placa-de-red-tp-link-usb-30-a-ethernet-rj45-ue300.html | Sin stock al momento de la consulta; \$25.999 por transferencia |
+| ESP32-WROOM-32 DevKit V1 | Starware | — | Precio tomado de la versión anterior del presupuesto |
