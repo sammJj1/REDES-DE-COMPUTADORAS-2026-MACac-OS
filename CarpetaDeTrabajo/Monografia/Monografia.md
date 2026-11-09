@@ -103,8 +103,8 @@ La Figura 1.1 resume la arquitectura que se analiza en este trabajo:
 - el Home Server concentra el broker MQTT, las automatizaciones y la seguridad;
 - los dispositivos IoT quedan en una red propia, separada de la red de los usuarios, a la que solo accede el Home Server.
 
-![Figura 1.1](img/fig1_1_arquitectura_general.png)
-
+![Figura 1.1](Imagenes/img/fig1_1_arquitectura_general.png)
+a
 *Figura 1.1: Arquitectura general de la Smart Home propuesta. Fuente: elaboración propia.*
 
 ---
@@ -135,7 +135,7 @@ Los dispositivos de la Smart Home pueden agruparse en tres tipos según su funci
 - el **núcleo**, que los procesa;
 - los **dispositivos finales**, que los generan o los consumen como clientes MQTT.
 
-![Figura 2.1](img/fig2_1_tipologia_dispositivos.png)
+![Figura 2.1](Imagenes/img/fig2_1_tipologia_dispositivos.png)
 
 *Figura 2.1: Clasificación de los dispositivos de la Smart Home según su función. Fuente: elaboración propia.*
 
@@ -176,7 +176,7 @@ Para la infraestructura crítica, en cambio, el direccionamiento dinámico es un
 4. El servidor guarda la asociación IP–MAC y encapsula el paquete en una trama dirigida a esa MAC.
 5. Los switches y puntos de acceso leen la MAC de destino, consultan su tabla de reenvío y envían la trama solo por el puerto o la interfaz inalámbrica donde está el relé.
 
-![Figura 2.2](img/fig2_2_arp.png)
+![Figura 2.2](Imagenes/img/fig2_2_arp.png)
 
 *Figura 2.2: Resolución de la dirección MAC del relé mediante ARP. Fuente: elaboración propia.*
 
@@ -229,7 +229,7 @@ La ventaja de este diseño es el **desacoplamiento**: quien detecta el cambio no
 
 El detalle de cada programa se presenta en la sección 7.3.
 
-![Figura 3.1](img/fig3_1_software_home_server.png)
+![Figura 3.1](Imagenes/img/fig3_1_software_home_server.png)
 
 *Figura 3.1: Organización del software del Home Server. Fuente: elaboración propia.*
 
@@ -242,7 +242,7 @@ Al diseñar la red de una casa inteligente hay que decidir si el procesamiento s
 
 Para compararlas se analizan cuatro aspectos: los componentes del retardo, las colas y el *bufferbloat*, el *jitter*, y la privacidad y la dependencia del fabricante.
 
-![Figura 3.2](img/fig3_2_local_vs_cloud.png)
+![Figura 3.2](Imagenes/img/fig3_2_local_vs_cloud.png)
 
 *Figura 3.2: Topología local frente a topología Cloud. Fuente: [completar si la imagen no es de elaboración propia].*
 
@@ -280,7 +280,7 @@ $$T \propto \frac{1}{1-\rho}$$
 
 Con el enlace al 50 % de uso el factor vale 2, al 90 % vale 10 y al 99 % vale 100. Es decir, el retardo no empeora de a poco, sino que **se dispara** cuando el enlace se acerca a su capacidad (Figura 3.3). En la LAN la utilización es baja; en el enlace de subida del hogar o en la WAN, en cambio, puede acercarse a 1.
 
-![Figura 3.3](img/fig3_3_curva_retardo_cola.png)
+![Figura 3.3](Imagenes/img/fig3_3_curva_retardo_cola.png)
 
 *Figura 3.3: Retardo medio en un nodo en función de la utilización del enlace (modelo M/M/1). Fuente: elaboración propia a partir de Kurose y Ross (2017).*
 
@@ -323,7 +323,7 @@ El Home Server lo logra aplicando el principio de **degradación elegante** (*gr
 
 Esto se explica por lo que ocurre en las capas inferiores (Figura 3.4).
 
-![Figura 3.4](img/fig3_4_modo_offline.png)
+![Figura 3.4](Imagenes/img/fig3_4_modo_offline.png)
 
 *Figura 3.4: Tolerancia a fallos en modo offline. Fuente: [completar si la imagen no es de elaboración propia].*
 
@@ -377,7 +377,7 @@ Este modelo centraliza el servicio, lo que facilita la administración, pero gen
 - **Suscriptor (*subscriber*):** el cliente interesado en recibir determinada información. Se suscribe a uno o varios topics, y cuando se publica un mensaje en alguno de ellos, el broker se lo entrega automáticamente.
 - **Broker:** ocupa el papel central. Recibe los mensajes de los publicadores, identifica su topic y los distribuye a todos los suscriptores de ese topic.
 
-![Figura 4.1](img/fig4_1_pub_sub.png)
+![Figura 4.1](Imagenes/img/fig4_1_pub_sub.png)
 
 *Figura 4.1: Modelo de publicación/suscripción. Fuente: [completar].*
 
@@ -392,7 +392,7 @@ Además:
 
 **Broker.** El broker acepta conexiones TCP de todos los clientes (sensores, actuadores, aplicaciones) y los identifica mediante un identificador de cliente (*Client ID*). Para cada cliente puede mantener una **sesión**, en la que guarda sus suscripciones y los mensajes pendientes de confirmación. La Figura 4.2 muestra un broker con varios clientes, cada uno asociado a sus topics. El intercambio de mensajes entre los clientes y el broker se detalla en la sección 4.3.
 
-![Figura 4.2](img/fig4_2_broker_clientes.png)
+![Figura 4.2](Imagenes/img/fig4_2_broker_clientes.png)
 
 *Figura 4.2: Broker MQTT con varios clientes y sus topics. Fuente: [completar].*
 
@@ -408,7 +408,7 @@ Al suscribirse, un cliente puede indicar un topic exacto o usar **comodines**:
 
 El árbol completo de topics usado en este trabajo se presenta en el Anexo B.
 
-![Figura 4.3](img/fig4_2_arbol_topics.png)
+![Figura 4.3](Imagenes/img/fig4_2_arbol_topics.png)
 
 *Figura 4.3: Organización jerárquica de los topics y uso de los comodines + y #. Fuente: elaboración propia.*
 
@@ -429,7 +429,7 @@ El servidor nunca habla primero: solo responde cuando se le pregunta. En el mode
 
 La diferencia se ve en un ejemplo. Para saber si una lámpara está encendida usando petición/respuesta, hay que preguntarlo, y para enterarse de un cambio hay que seguir preguntando cada tanto (*polling*). Con publicación/suscripción, la lámpara publica su estado cuando cambia y el celular, que ya está suscrito, se entera en el momento (Figura 4.4).
 
-![Figura 4.4](img/fig4_3_polling_vs_push.png)
+![Figura 4.4](Imagenes/img/fig4_3_polling_vs_push.png)
 
 *Figura 4.4: Con HTTP el cliente debe consultar periódicamente; con MQTT el broker avisa en el momento. Fuente: elaboración propia.*
 
@@ -453,7 +453,7 @@ Como ambos protocolos viajan sobre TCP/IP, pagan el mismo costo de transporte: a
 
 Para encender una lámpara con el mensaje `ON`, una petición HTTP mínima con su respuesta ocupa unos 109 bytes de capa de aplicación, mientras que un PUBLISH de MQTT con QoS 0 ocupa 25 (Figura 4.5; el desglose está en el Anexo A). En la práctica, HTTP agrega más cabeceras y pesaría más.
 
-![Figura 4.5](img/fig4_4_bytes_http_mqtt.png)
+![Figura 4.5](Imagenes/img/fig4_4_bytes_http_mqtt.png)
 
 *Figura 4.5: Bytes de capa de aplicación necesarios para encender una lámpara. Fuente: elaboración propia (ver Anexo A).*
 
@@ -491,7 +491,7 @@ MQTT encaja mejor para la comunicación entre sensores, actuadores y el Home Ser
 
 MQTT funciona mediante distintos tipos de mensajes de control, y cada uno cumple una función concreta. La Figura 4.6 resume el ciclo completo de una sesión.
 
-![Figura 4.6](img/fig4_5_secuencia_mqtt.png)
+![Figura 4.6](Imagenes/img/fig4_5_secuencia_mqtt.png)
 
 *Figura 4.6: Intercambio de paquetes MQTT entre dos clientes y el broker. Fuente: elaboración propia.*
 
@@ -568,7 +568,7 @@ El nivel se define **para cada mensaje**, no para todo el sistema:
 
 El mensaje se envía una sola vez y sin confirmación (Figura 4.7a). Llega una vez o no llega, pero nunca se repite. Como no se espera respuesta, el mensaje ni siquiera lleva un identificador.
 
-![Figura 4.7a](img/fig4_6a_qos0.png)
+![Figura 4.7a](Imagenes/img/fig4_6a_qos0.png)
 
 *Figura 4.7a: QoS 0. Fuente: elaboración propia.*
 
@@ -580,7 +580,7 @@ El mensaje se envía una sola vez y sin confirmación (Figura 4.7a). Llega una v
 
 El receptor confirma cada mensaje con un **PUBACK** (Figura 4.7b). Cada PUBLISH lleva un identificador de paquete, y el PUBACK repite ese número para que el emisor sepa qué mensaje se confirmó. Mientras no llegue la confirmación, el emisor guarda una copia del mensaje.
 
-![Figura 4.7b](img/fig4_6b_qos1.png)
+![Figura 4.7b](Imagenes/img/fig4_6b_qos1.png)
 
 *Figura 4.7b: QoS 1. Fuente: elaboración propia.*
 
@@ -607,7 +607,7 @@ El mensaje llega una sola vez, sin pérdidas ni duplicados. Para lograrlo, emiso
 
 El receptor recuerda el identificador del mensaje hasta completar el intercambio. Si el mismo mensaje le llega repetido, lo reconoce y no lo procesa otra vez.
 
-![Figura 4.7c](img/fig4_6c_qos2.png)
+![Figura 4.7c](Imagenes/img/fig4_6c_qos2.png)
 
 *Figura 4.7c: QoS 2. Fuente: elaboración propia.*
 
@@ -635,7 +635,7 @@ No hay un nivel correcto para todo. Conviene elegir **el nivel más bajo que tod
 
 También importa la energía disponible: en un dispositivo a batería conviene el nivel más bajo posible.
 
-![Figura 4.8](img/fig4_7_flujo_seleccion_qos.png)
+![Figura 4.8](Imagenes/img/fig4_7_flujo_seleccion_qos.png)
 
 *Figura 4.8: Criterio para elegir el nivel de QoS de un mensaje. Fuente: elaboración propia.*
 
@@ -671,7 +671,7 @@ La QoS garantiza que el mensaje llegue al broker o al suscriptor. No garantiza q
 
 Cuando un mensaje baja por la pila, cada capa le agrega su propia cabecera (**encapsulamiento**, Figura 5.1). Un PUBLISH de unos 25 bytes termina viajando en una trama Ethernet de unos 83 bytes, de los cuales cerca del 70 % son cabeceras. Este cálculo considera TCP e IP sin opciones (20 bytes cada uno) y Ethernet con 14 bytes de cabecera y 4 de verificación (FCS). En Wi-Fi la cabecera es más grande, y con TLS se agregan unos 20 a 30 bytes por registro.
 
-![Figura 5.1](img/fig5_1_encapsulamiento.png)
+![Figura 5.1](Imagenes/img/fig5_1_encapsulamiento.png)
 
 *Figura 5.1: Encapsulamiento de un mensaje PUBLISH al bajar por la pila TCP/IP. Fuente: elaboración propia.*
 
@@ -732,13 +732,13 @@ El recorrido es el siguiente (Figuras 5.2 y 5.3):
 6. **En el relé.** El relé descifra el mensaje TLS, confirma con PUBACK, cierra el contacto y la luz se enciende.
 7. **Confirmación al usuario.** El relé publica su nuevo estado en `casa/living/luz/estado` (con *Retain*). El broker lo entrega a Home Assistant, que actualiza la aplicación del celular.
 
-![Figura 5.2](img/fig5_2_camino_por_capas.png)
+![Figura 5.2](Imagenes/img/fig5_2_camino_por_capas.png)
 
 *Figura 5.2: Capas que procesa cada equipo durante el envío de la orden. Fuente: elaboración propia.*
 
 Los equipos intermedios (router, switch y puntos de acceso) solo llegan hasta la capa de enlace: leen la dirección MAC y reenvían la trama. Solo los extremos y el Home Server suben hasta la capa de aplicación. Como todo ocurre dentro de la casa, **ningún router necesita encaminar la orden en capa 3**, y ningún paquete sale a Internet.
 
-![Figura 5.3](img/fig5_3_secuencia_orden.png)
+![Figura 5.3](Imagenes/img/fig5_3_secuencia_orden.png)
 
 *Figura 5.3: Mensajes intercambiados desde que el usuario toca "encender" hasta que la aplicación muestra la luz encendida. Fuente: elaboración propia.*
 
@@ -769,7 +769,7 @@ El protocolo MQTT estándar funciona sobre TCP en el puerto 1883 y, en su config
 
 **La solución: MQTT sobre TLS.** Para evitar estas vulnerabilidades se usa MQTT sobre **TLS** (*Transport Layer Security*), en el puerto TCP 8883. TLS se ubica entre TCP y MQTT, de modo que MQTT no cambia: solo viaja dentro de un canal protegido (Figura 6.1).
 
-![Figura 6.1](img/fig6_1_pila_mqtt_tls.png)
+![Figura 6.1](Imagenes/img/fig6_1_pila_mqtt_tls.png)
 
 *Figura 6.1: Ubicación de TLS en la pila de protocolos. Fuente: elaboración propia.*
 
@@ -844,7 +844,7 @@ Como resultado, la red IoT no tiene salida a Internet ni acceso a la red princip
 
 Es un firewall **con inspección de estado** (*stateful*): lleva un registro de las conexiones abiertas y deja pasar automáticamente las respuestas a una conexión permitida. En MQTT son los dispositivos IoT los que inician la conexión hacia el broker. Por eso esa conexión se **permite explícitamente**, pero solo hacia el puerto 8883 del Home Server; cualquier otra conexión iniciada desde la red IoT se bloquea.
 
-![Figura 6.2](img/fig6_2_segmentacion_firewall.png)
+![Figura 6.2](Imagenes/img/fig6_2_segmentacion_firewall.png)
 
 *Figura 6.2: Tráfico permitido y bloqueado entre la red IoT, el Home Server y la red principal. Fuente: elaboración propia.*
 
@@ -879,7 +879,7 @@ NAT funciona de manera transparente para el tráfico que sale, pero es una barre
   - **Funcionamiento:** es la alternativa cuando el proveedor usa CGNAT. En lugar de esperar que el celular llame a la casa, el Home Server establece una conexión **saliente** permanente hacia un nodo intermediario de confianza en la nube, y el celular se conecta a ese mismo nodo.
   - **Ventajas:** como la conexión se inicia desde la LAN, atraviesa el NAT sin abrir puertos, y el tráfico viaja cifrado de extremo a extremo.
 
-![Figura 6.3](img/fig6_3_acceso_remoto.png)
+![Figura 6.3](Imagenes/img/fig6_3_acceso_remoto.png)
 
 *Figura 6.3: Comparación de los métodos de acceso remoto. Fuente: elaboración propia.*
 
@@ -901,7 +901,7 @@ La Figura 7.1 muestra cómo se conectan los equipos:
 - El Home Server tiene dos interfaces de red. La primera está conectada al switch, junto con el resto de la casa. La segunda está conectada directamente a un punto de acceso exclusivo para los dispositivos IoT; así, la red IoT queda físicamente separada y su única salida es el Home Server.
 - El coordinador Zigbee se conecta por USB al Home Server y forma su propia red de malla con los sensores.
 
-![Figura 7.1](img/fig7_1_conexion_fisica.png)
+![Figura 7.1](Imagenes/img/fig7_1_conexion_fisica.png)
 
 *Figura 7.1: Conexión física de los equipos, con modelos e interfaces. Fuente: elaboración propia.*
 
